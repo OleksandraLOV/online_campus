@@ -1,0 +1,16 @@
+import { User, StudentProfile, TeacherProfile, Group, Department, Faculty, Course, CourseAssignment, Classroom, ScheduleEntry, Material, Assignment, Submission, Grade, Notification } from '../types/entities';
+export declare const faculties: Faculty[];
+export declare const departments: Department[];
+export declare const users: User[];
+export declare const studentProfiles: StudentProfile[];
+export declare const teacherProfiles: TeacherProfile[];
+export declare const groups: Group[];
+export declare const courses: Course[];
+export declare const courseAssignments: CourseAssignment[];
+export declare const classrooms: Classroom[];
+export declare const scheduleEntries: ScheduleEntry[];
+export declare const materials: Material[];
+export declare const assignments: Assignment[];
+export declare const submissions: Submission[];
+export declare const grades: Grade[];
+export declare const notifications: Notification[];
