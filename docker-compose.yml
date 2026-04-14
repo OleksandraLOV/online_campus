@@ -1,15 +1,50 @@
 services:
   server:
     build: ./server
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=campus-secret-key-change-in-production
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - campus
 
   client:
-    build: ./client
+    build:
+      context: ./client
+      args:
+        - VITE_API_URL=/api
+    restart: unless-stopped
     ports:
       - "5173:80"
     depends_on:
       - server
+    networks:
+      - campus
+
+  mongodb:
+    image: mongo:7.0
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
+    volumes:
+      - ./data/db:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - campus
+
+networks:
+  campus:
+    driver: bridge

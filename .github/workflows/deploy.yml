@@ -1,0 +1,46 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: MONGO_ROOT_USERNAME,MONGO_ROOT_PASSWORD,MONGO_DATABASE,MONGO_HOST,MONGO_PORT,JWT_SECRET,PORT,CLIENT_URL
+          script: |
+            cd /opt/online_campus
+            git pull origin master
+
+            cat > .env <<EOF
+            MONGO_ROOT_USERNAME=$MONGO_ROOT_USERNAME
+            MONGO_ROOT_PASSWORD=$MONGO_ROOT_PASSWORD
+            MONGO_DATABASE=$MONGO_DATABASE
+            MONGO_HOST=$MONGO_HOST
+            MONGO_PORT=$MONGO_PORT
+            JWT_SECRET=$JWT_SECRET
+            PORT=$PORT
+            CLIENT_URL=$CLIENT_URL
+            EOF
+
+            docker compose up --build -d
+            docker image prune -f
+        env:
+          MONGO_ROOT_USERNAME: ${{ secrets.MONGO_ROOT_USERNAME }}
+          MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
+          MONGO_DATABASE: ${{ secrets.MONGO_DATABASE }}
+          MONGO_HOST: ${{ secrets.MONGO_HOST }}
+          MONGO_PORT: ${{ secrets.MONGO_PORT }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: ${{ secrets.PORT }}
+          CLIENT_URL: ${{ secrets.CLIENT_URL }}

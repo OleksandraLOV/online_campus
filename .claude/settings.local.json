@@ -16,7 +16,8 @@
       "Bash(open:*)",
       "Bash(docker compose:*)",
       "Bash(lsof:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
