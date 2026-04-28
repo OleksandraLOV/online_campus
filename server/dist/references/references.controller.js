@@ -10,9 +10,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReferencesController = void 0;
+const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const references_service_1 = require("./references.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const swagger_1 = require("@nestjs/swagger");
 let ReferencesController = class ReferencesController {
     referencesService;
     constructor(referencesService) {
@@ -34,29 +36,35 @@ let ReferencesController = class ReferencesController {
 exports.ReferencesController = ReferencesController;
 __decorate([
     (0, common_1.Get)('groups'),
+    openapi.ApiResponse({ status: 200, type: [Object] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ReferencesController.prototype, "getGroups", null);
 __decorate([
     (0, common_1.Get)('classrooms'),
+    openapi.ApiResponse({ status: 200, type: [Object] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ReferencesController.prototype, "getClassrooms", null);
 __decorate([
     (0, common_1.Get)('departments'),
+    openapi.ApiResponse({ status: 200, type: [Object] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ReferencesController.prototype, "getDepartments", null);
 __decorate([
     (0, common_1.Get)('faculties'),
+    openapi.ApiResponse({ status: 200, type: [Object] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ReferencesController.prototype, "getFaculties", null);
 exports.ReferencesController = ReferencesController = __decorate([
+    (0, swagger_1.ApiTags)('references'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('references'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [references_service_1.ReferencesService])

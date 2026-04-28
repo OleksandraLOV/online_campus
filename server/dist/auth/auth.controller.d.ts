@@ -1,11 +1,10 @@
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RefreshDto } from './dto/refresh.dto';
 export declare class AuthController {
     private authService;
     constructor(authService: AuthService);
-    login(body: {
-        login: string;
-        password: string;
-    }): Promise<{
+    login(body: LoginDto): Promise<{
         accessToken: string;
         refreshToken: string;
         user: {
@@ -24,9 +23,7 @@ export declare class AuthController {
             createdAt: string;
         };
     }>;
-    refresh(body: {
-        refreshToken: string;
-    }): Promise<{
+    refresh(body: RefreshDto): Promise<{
         accessToken: string;
         refreshToken: string;
     }>;

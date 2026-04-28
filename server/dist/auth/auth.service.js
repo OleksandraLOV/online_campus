@@ -64,7 +64,11 @@ let AuthService = class AuthService {
     async refresh(refreshToken) {
         try {
             const payload = this.jwtService.verify(refreshToken);
-            const newPayload = { sub: payload.sub, login: payload.login, role: payload.role };
+            const newPayload = {
+                sub: payload.sub,
+                login: payload.login,
+                role: payload.role,
+            };
             return {
                 accessToken: this.jwtService.sign(newPayload),
                 refreshToken: this.jwtService.sign(newPayload, { expiresIn: '7d' }),

@@ -13,11 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScheduleController = void 0;
+const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const schedule_service_1 = require("./schedule.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const roles_guard_1 = require("../auth/roles.guard");
 const roles_enum_1 = require("../common/types/roles.enum");
+const swagger_1 = require("@nestjs/swagger");
 let ScheduleController = class ScheduleController {
     scheduleService;
     constructor(scheduleService) {
@@ -55,6 +57,7 @@ let ScheduleController = class ScheduleController {
 exports.ScheduleController = ScheduleController;
 __decorate([
     (0, common_1.Get)(),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)('date')),
     __param(1, (0, common_1.Query)('groupId')),
     __param(2, (0, common_1.Query)('teacherId')),
@@ -64,6 +67,7 @@ __decorate([
 ], ScheduleController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('my'),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -72,6 +76,7 @@ __decorate([
 __decorate([
     (0, common_1.Post)(),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.DISPATCHER, roles_enum_1.Role.ADMIN),
+    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -80,6 +85,7 @@ __decorate([
 __decorate([
     (0, common_1.Put)(':id'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.DISPATCHER, roles_enum_1.Role.ADMIN),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -89,12 +95,15 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.DISPATCHER, roles_enum_1.Role.ADMIN),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ScheduleController.prototype, "delete", null);
 exports.ScheduleController = ScheduleController = __decorate([
+    (0, swagger_1.ApiTags)('schedule'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('schedule'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [schedule_service_1.ScheduleService])

@@ -13,11 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CoursesController = void 0;
+const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const courses_service_1 = require("./courses.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const roles_guard_1 = require("../auth/roles.guard");
 const roles_enum_1 = require("../common/types/roles.enum");
+const swagger_1 = require("@nestjs/swagger");
 let CoursesController = class CoursesController {
     coursesService;
     constructor(coursesService) {
@@ -58,12 +60,14 @@ let CoursesController = class CoursesController {
 exports.CoursesController = CoursesController;
 __decorate([
     (0, common_1.Get)(),
+    openapi.ApiResponse({ status: 200, type: [Object] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], CoursesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('my'),
+    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -71,6 +75,7 @@ __decorate([
 ], CoursesController.prototype, "findMy", null);
 __decorate([
     (0, common_1.Get)(':courseAssignmentId/materials'),
+    openapi.ApiResponse({ status: 200, type: [Object] }),
     __param(0, (0, common_1.Param)('courseAssignmentId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -78,6 +83,7 @@ __decorate([
 ], CoursesController.prototype, "getMaterials", null);
 __decorate([
     (0, common_1.Get)(':courseAssignmentId/assignments'),
+    openapi.ApiResponse({ status: 200, type: [Object] }),
     __param(0, (0, common_1.Param)('courseAssignmentId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -86,6 +92,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':courseAssignmentId/grades'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.TEACHER, roles_enum_1.Role.DEPARTMENT_HEAD, roles_enum_1.Role.DEAN, roles_enum_1.Role.ADMIN),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('courseAssignmentId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -93,6 +100,7 @@ __decorate([
 ], CoursesController.prototype, "getGradeJournal", null);
 __decorate([
     (0, common_1.Get)('assignments/my'),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -100,6 +108,7 @@ __decorate([
 ], CoursesController.prototype, "getMyAssignments", null);
 __decorate([
     (0, common_1.Get)('grades/my'),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -108,12 +117,15 @@ __decorate([
 __decorate([
     (0, common_1.Get)('assignments/:assignmentId/submissions'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.TEACHER, roles_enum_1.Role.DEPARTMENT_HEAD, roles_enum_1.Role.ADMIN),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('assignmentId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CoursesController.prototype, "getSubmissions", null);
 exports.CoursesController = CoursesController = __decorate([
+    (0, swagger_1.ApiTags)('courses'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('courses'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [courses_service_1.CoursesService])

@@ -13,11 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
+const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const roles_guard_1 = require("../auth/roles.guard");
 const roles_enum_1 = require("../common/types/roles.enum");
+const swagger_1 = require("@nestjs/swagger");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -43,6 +45,7 @@ exports.UsersController = UsersController;
 __decorate([
     (0, common_1.Get)(),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.ADMIN, roles_enum_1.Role.RECTOR, roles_enum_1.Role.PRESIDENT),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)('role')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -51,6 +54,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('search'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.ADMIN, roles_enum_1.Role.PRESIDENT, roles_enum_1.Role.RECTOR, roles_enum_1.Role.DEAN),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)('q')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -59,6 +63,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('group/:groupId'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.TEACHER, roles_enum_1.Role.DEPARTMENT_HEAD, roles_enum_1.Role.DEAN, roles_enum_1.Role.ADMIN),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('groupId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -67,6 +72,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('department/:departmentId'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.DEPARTMENT_HEAD, roles_enum_1.Role.DEAN, roles_enum_1.Role.ADMIN),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('departmentId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -75,12 +81,15 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.ADMIN, roles_enum_1.Role.PRESIDENT, roles_enum_1.Role.RECTOR, roles_enum_1.Role.DEAN),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findOne", null);
 exports.UsersController = UsersController = __decorate([
+    (0, swagger_1.ApiTags)('users'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('users'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [users_service_1.UsersService])
