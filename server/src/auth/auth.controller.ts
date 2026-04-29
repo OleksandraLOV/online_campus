@@ -6,7 +6,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import {
@@ -25,6 +25,7 @@ import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Throttle({ auth: { limit: 10, ttl: 900000 } })
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
   @ApiBody({ type: LoginDto })
