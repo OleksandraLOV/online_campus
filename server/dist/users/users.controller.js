@@ -45,7 +45,7 @@ exports.UsersController = UsersController;
 __decorate([
     (0, common_1.Get)(),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.ADMIN, roles_enum_1.Role.RECTOR, roles_enum_1.Role.PRESIDENT),
-    openapi.ApiResponse({ status: 200 }),
+    openapi.ApiResponse({ status: 200, type: [require("./dto/user.dto").UserDto] }),
     __param(0, (0, common_1.Query)('role')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -54,7 +54,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('search'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.ADMIN, roles_enum_1.Role.PRESIDENT, roles_enum_1.Role.RECTOR, roles_enum_1.Role.DEAN),
-    openapi.ApiResponse({ status: 200 }),
+    openapi.ApiResponse({ status: 200, type: [require("./dto/user.dto").UserDto] }),
     __param(0, (0, common_1.Query)('q')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -63,7 +63,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('group/:groupId'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.TEACHER, roles_enum_1.Role.DEPARTMENT_HEAD, roles_enum_1.Role.DEAN, roles_enum_1.Role.ADMIN),
-    openapi.ApiResponse({ status: 200 }),
+    openapi.ApiResponse({ status: 200, type: [require("./dto/user.dto").UserDto] }),
     __param(0, (0, common_1.Param)('groupId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -72,7 +72,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('department/:departmentId'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.DEPARTMENT_HEAD, roles_enum_1.Role.DEAN, roles_enum_1.Role.ADMIN),
-    openapi.ApiResponse({ status: 200 }),
+    openapi.ApiResponse({ status: 200, type: [require("./dto/user.dto").UserDto] }),
     __param(0, (0, common_1.Param)('departmentId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -81,7 +81,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     (0, roles_guard_1.Roles)(roles_enum_1.Role.ADMIN, roles_enum_1.Role.PRESIDENT, roles_enum_1.Role.RECTOR, roles_enum_1.Role.DEAN),
-    openapi.ApiResponse({ status: 200 }),
+    openapi.ApiResponse({ status: 200, type: require("./dto/user.dto").UserDto }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
