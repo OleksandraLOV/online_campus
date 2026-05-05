@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import type { User } from '../types';
-import { Role, ROLE_LABELS } from '../types';
+import { Role, ROLE_LABEL_KEYS } from '../types';
+import { useTranslation } from 'react-i18next';
+
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -27,7 +30,9 @@ export default function UsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Користувачі</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+        {t('users.title')}
+      </h1>
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 flex flex-wrap gap-4">
@@ -37,24 +42,24 @@ export default function UsersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Пошук за ПІБ..."
+            placeholder={t('users.searchPlaceholder')}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           />
           <button
             onClick={handleSearch}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-          >
-            Знайти
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+            {t('users.searchButton')}
           </button>
         </div>
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-        >
-          <option value="">Усі ролі</option>
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          <option value="">{t('users.allRoles')}</option>
           {Object.values(Role).map((role) => (
-            <option key={role} value={role}>{ROLE_LABELS[role]}</option>
+            <option key={role} value={role}>
+              {t(ROLE_LABEL_KEYS[role])}
+            </option>
           ))}
         </select>
       </div>
@@ -65,15 +70,17 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-4 font-medium text-gray-600">ПІБ</th>
-                <th className="text-left p-4 font-medium text-gray-600">Роль</th>
-                <th className="text-left p-4 font-medium text-gray-600">Email</th>
-                <th className="text-left p-4 font-medium text-gray-600">Статус</th>
+                <th>{t('users.fullName')}</th>
+                <th>{t('users.role')}</th>
+                <th>{t('users.email')}</th>
+                <th>{t('users.status')}</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50">
+                <tr
+                  key={user.id}
+                  className="border-b last:border-0 hover:bg-gray-50">
                   <td className="p-4">
                     <div className="font-medium text-gray-900">
                       {user.lastName} {user.firstName} {user.middleName || ''}
@@ -81,17 +88,20 @@ export default function UsersPage() {
                   </td>
                   <td className="p-4">
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                      {ROLE_LABELS[user.role]}
+                      {t(ROLE_LABEL_KEYS[user.role])}
                     </span>
                   </td>
                   <td className="p-4 text-gray-600">{user.email}</td>
                   <td className="p-4">
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      user.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}>
-                      {user.status === 'active' ? 'Активний' : 'Заблокований'}
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        user.status === 'active'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                      {user.status === 'active'
+                        ? t('users.statusActive')
+                        : t('users.statusBlocked')}
                     </span>
                   </td>
                 </tr>
