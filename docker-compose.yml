@@ -30,7 +30,11 @@ services:
   mongodb:
     image: mongo:7.0
     ports:
+<<<<<<< HEAD
       - '27017:27017'
+=======
+      - "27017:27017"
+>>>>>>> 5cf95e5957bef5dea93aba2b2e41d51b04b6c7f1
     restart: unless-stopped
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
