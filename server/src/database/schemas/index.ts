@@ -6,3 +6,4 @@ export * from './department.schema';
 export * from './faculty.schema';
 export * from './classroom.schema';
 export * from './specialty.schema';
+export * from './file.schema';

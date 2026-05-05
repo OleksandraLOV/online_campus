@@ -6,19 +6,19 @@ export type FileDocument = File & Document;
 @Schema({ timestamps: true })
 export class File {
   @Prop({ required: true })
-  originalName!: string;
+  originalName: string;
 
   @Prop({ required: true })
-  storagePath!: string;
+  storagePath: string;
 
   @Prop({ required: true })
-  mimetype!: string;
+  mimetype: string;
 
   @Prop({ required: true })
-  size!: number;
+  size: number;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  uploadedBy!: Types.ObjectId;
+  uploadedBy: Types.ObjectId;
 }
 
 export const FileSchema = SchemaFactory.createForClass(File);

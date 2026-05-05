@@ -1,12 +1,11 @@
 import 'multer';
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException,NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { File, FileDocument } from './file.schema';
-
+import { File, FileDocument } from '../database/schemas/file.schema';
 @Injectable()
 export class FilesService {
   constructor(
@@ -51,5 +50,23 @@ export class FilesService {
       throw new BadRequestException('Файл не знайдено');
     }
     return file;
+  }
+  async deleteFile(fileId: string) {
+  const file = await this.fileModel.findById(fileId);
+  if (!file) {
+    throw new NotFoundException('Файл не знайдено');
+  }
+
+  const filePath = path.join(__dirname, '..', '..', 'uploads', file.storagePath);
+
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    await this.fileModel.findByIdAndDelete(fileId);
+    return { message: 'Файл видалено' };
+  } catch (error) {
+    throw new BadRequestException('Помилка при видаленні файлу');
+  }
   }
 }

@@ -5,7 +5,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScheduleModule } from './schedule/schedule.module';
@@ -59,6 +58,7 @@ import { FilesModule } from './files/files.module';
     NotificationsModule,
     SeedModule,
     AuditLogModule,
+    FilesModule,
   ],
   providers: [
     {

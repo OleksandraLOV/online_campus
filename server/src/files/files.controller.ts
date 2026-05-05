@@ -1,15 +1,16 @@
-import { Controller, Post, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req,Get, Param, Res, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Delete,UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req,Get, Param, Res, NotFoundException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as path from 'path';
 import { ApiConsumes, ApiBody, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { FilesService } from './files.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'; 
-
+import { AuditInterceptor } from '../audit-log/audit.interceptor';
 @ApiTags('Files')
 @ApiBearerAuth()
 @Controller('files')
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(AuditInterceptor)
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
@@ -61,6 +62,10 @@ export class FilesController {
         }
       }
     });
+  }
+  @Delete(':id')
+    async removeFile(@Param('id') id: string) {
+      return this.filesService.deleteFile(id);
   }
 }
 

@@ -2,6 +2,10 @@ services:
   server:
     build: ./server
     restart: unless-stopped
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./server/uploads:/app/uploads
     ports:
       - "${PORT}:${PORT}"
     env_file:
@@ -38,7 +42,6 @@ services:
       - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
     volumes:
       - ./data/db:/data/db
-      - ./server/uploads:/app/uploads
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -51,3 +54,4 @@ services:
 networks:
   campus:
     driver: bridge
+    
