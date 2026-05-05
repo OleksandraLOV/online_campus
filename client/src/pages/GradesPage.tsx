@@ -45,8 +45,8 @@ const locale = i18n.language === 'en' ? 'en-US' : 'uk-UA';
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 {data.courseName}
               </h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+                <table className="min-w-[650px] w-full">
                   <thead>
                     <tr className="text-left text-gray-500 border-b">
                       <th>{t('grades.date')}</th>
