@@ -49,6 +49,10 @@ const resources = {
       'dashboard.notifications': 'Сповіщення',
       'dashboard.noNotifications': 'Немає сповіщень',
       'dashboard.adminPanel': 'Панель управління',
+      'dashboard.usersCount': 'Користувачів',
+      'dashboard.groupsCount': 'Груп',
+      'dashboard.coursesCount': 'Дисциплін',
+      'dashboard.classroomsCount': 'Аудиторій',
 
       'schedule.title': 'Розклад',
       'schedule.day': 'День',
@@ -159,6 +163,10 @@ const resources = {
       'dashboard.notifications': 'Notifications',
       'dashboard.noNotifications': 'No notifications',
       'dashboard.adminPanel': 'Admin panel',
+      'dashboard.usersCount': 'Users',
+      'dashboard.groupsCount': 'Groups',
+      'dashboard.coursesCount': 'Courses',
+      'dashboard.classroomsCount': 'Classrooms',
 
       'schedule.title': 'Schedule',
       'schedule.day': 'Day',
