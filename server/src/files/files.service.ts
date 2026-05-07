@@ -5,7 +5,7 @@ import { Model, Types } from 'mongoose';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { File, FileDocument } from '../database/schemas/file.schema';
+import { File, FileDocument } from './file.schema';
 @Injectable()
 export class FilesService {
   constructor(
