@@ -27,9 +27,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: data.user, isAuthenticated: true, isLoading: false });
     } catch (err: any) {
       set({
-        error: err.response?.data?.message || 'Помилка входу',
+        error:
+          err.response?.status === 401
+            ? 'Неправильний логін або пароль'
+            : 'Помилка входу',
         isLoading: false,
       });
+
       throw err;
     }
   },
