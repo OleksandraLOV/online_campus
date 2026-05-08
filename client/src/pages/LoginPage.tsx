@@ -34,9 +34,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid lg:grid-cols-2">
-        
+  <div
+    className="min-h-screen flex items-center justify-center p-4 bg-cover bg-no-repeat"
+    style={{
+      backgroundImage:
+        "linear-gradient(rgba(10,25,47,0.30), rgba(10,25,47,0.30)), url('/login-bg.webp')",
+      backgroundPosition: 'center 5%',
+    }}
+  >
+
+  <div className="relative z-10 w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid lg:grid-cols-2">
+     
           <div className="hidden lg:flex flex-col justify-between bg-blue-900 text-white p-10">
             <div>
               <div className="flex items-center gap-4 mb-8">
