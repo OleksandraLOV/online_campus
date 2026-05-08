@@ -1,24 +1,31 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import type { User } from '../types';
-import { Role, ROLE_LABELS } from '../types';
+import { Role, ROLE_LABEL_KEYS } from '../types';
+import { useTranslation } from 'react-i18next';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (roleFilter) params.set('role', roleFilter);
 
-    api.get(`/users?${params}`).then(({ data }) => setUsers(data)).catch(() => {});
+    api
+      .get(`/users?${params}`)
+      .then(({ data }) => setUsers(data))
+      .catch(() => {});
   }, [roleFilter]);
 
   const handleSearch = async () => {
     if (!search.trim()) return;
     try {
-      const { data } = await api.get(`/users/search?q=${encodeURIComponent(search)}`);
+      const { data } = await api.get(
+        `/users/search?q=${encodeURIComponent(search)}`,
+      );
       setUsers(data);
     } catch {
       // error
@@ -27,78 +34,99 @@ export default function UsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Користувачі</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+        {t('users.title')}
+      </h1>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 flex flex-wrap gap-4">
-        <div className="flex gap-2 flex-1 min-w-[200px]">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Пошук за ПІБ..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-          >
-            Знайти
-          </button>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-2 flex-1 sm:flex-row">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder={t('users.searchPlaceholder')}
+              className="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+
+            <button
+              onClick={handleSearch}
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+              {t('users.searchButton')}
+            </button>
+          </div>
+
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">{t('users.allRoles')}</option>
+            {Object.values(Role).map((role) => (
+              <option key={role} value={role}>
+                {t(ROLE_LABEL_KEYS[role])}
+              </option>
+            ))}
+          </select>
         </div>
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-        >
-          <option value="">Усі ролі</option>
-          {Object.values(Role).map((role) => (
-            <option key={role} value={role}>{ROLE_LABELS[role]}</option>
-          ))}
-        </select>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left p-4 font-medium text-gray-600">ПІБ</th>
-                <th className="text-left p-4 font-medium text-gray-600">Роль</th>
-                <th className="text-left p-4 font-medium text-gray-600">Email</th>
-                <th className="text-left p-4 font-medium text-gray-600">Статус</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="p-4">
-                    <div className="font-medium text-gray-900">
-                      {user.lastName} {user.firstName} {user.middleName || ''}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                      {ROLE_LABELS[user.role]}
-                    </span>
-                  </td>
-                  <td className="p-4 text-gray-600">{user.email}</td>
-                  <td className="p-4">
-                    <span className={`text-xs px-2 py-1 rounded ${
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="min-w-[700px] w-full">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase">
+                {t('users.fullName')}
+              </th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase">
+                {t('users.role')}
+              </th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase">
+                {t('users.email')}
+              </th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase">
+                {t('users.status')}
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {users.map((user) => (
+              <tr
+                key={user.id}
+                className="border-b last:border-0 hover:bg-gray-50">
+                <td className="p-4">
+                  <div className="font-medium text-gray-900">
+                    {user.lastName} {user.firstName} {user.middleName || ''}
+                  </div>
+                </td>
+
+                <td className="p-4">
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                    {t(ROLE_LABEL_KEYS[user.role])}
+                  </span>
+                </td>
+
+                <td className="p-4 text-gray-600">{user.email}</td>
+
+                <td className="p-4">
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${
                       user.status === 'active'
                         ? 'bg-green-100 text-green-700'
                         : 'bg-red-100 text-red-700'
                     }`}>
-                      {user.status === 'active' ? 'Активний' : 'Заблокований'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {user.status === 'active'
+                      ? t('users.statusActive')
+                      : t('users.statusBlocked')}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
