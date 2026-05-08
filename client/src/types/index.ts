@@ -11,15 +11,25 @@ export const Role = {
 
 export type Role = (typeof Role)[keyof typeof Role];
 
+export const ROLE_LABEL_KEYS: Record<Role, string> = {
+  [Role.STUDENT]: 'roles.student',
+  [Role.TEACHER]: 'roles.teacher',
+  [Role.DISPATCHER]: 'roles.dispatcher',
+  [Role.DEPARTMENT_HEAD]: 'roles.departmentHead',
+  [Role.DEAN]: 'roles.dean',
+  [Role.RECTOR]: 'roles.rector',
+  [Role.PRESIDENT]: 'roles.president',
+  [Role.ADMIN]: 'roles.admin',
+};
 export const ROLE_LABELS: Record<Role, string> = {
   [Role.STUDENT]: 'Студент',
   [Role.TEACHER]: 'Викладач',
-  [Role.DISPATCHER]: 'Диспетчер розкладу',
-  [Role.DEPARTMENT_HEAD]: 'Завідувач кафедри',
-  [Role.DEAN]: 'Декан факультету',
+  [Role.DISPATCHER]: 'Диспетчер',
+  [Role.DEPARTMENT_HEAD]: 'Зав. кафедри',
+  [Role.DEAN]: 'Декан',
   [Role.RECTOR]: 'Ректор',
-  [Role.PRESIDENT]: 'Президент академії',
-  [Role.ADMIN]: 'Адміністратор',
+  [Role.PRESIDENT]: 'Президент',
+  [Role.ADMIN]: 'Адмін',
 };
 
 export interface User {
