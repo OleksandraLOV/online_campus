@@ -3,6 +3,8 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScheduleModule } from './schedule/schedule.module';
@@ -13,6 +15,7 @@ import { SeedModule } from './seed/seed.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { AuditInterceptor } from './audit-log/audit.interceptor';
 import { ExistsInDatabaseConstraint } from './common/validators/exists-in-database.validator';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -29,6 +32,12 @@ import { ExistsInDatabaseConstraint } from './common/validators/exists-in-databa
       },
     ]),
     ConfigModule.forRoot({ isGlobal: true }),
+
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads', 
+    }),
+
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -49,6 +58,7 @@ import { ExistsInDatabaseConstraint } from './common/validators/exists-in-databa
     NotificationsModule,
     SeedModule,
     AuditLogModule,
+    FilesModule,
   ],
   providers: [
     {
@@ -60,6 +70,7 @@ import { ExistsInDatabaseConstraint } from './common/validators/exists-in-databa
       useClass: AuditInterceptor,
     },
     ExistsInDatabaseConstraint,
+    FilesModule,
   ],
 })
 export class AppModule {}
