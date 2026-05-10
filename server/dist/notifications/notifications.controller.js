@@ -26,8 +26,12 @@ let NotificationsController = class NotificationsController {
     findMy(req) {
         return this.notificationsService.findByUser(req.user.sub);
     }
-    getUnreadCount(req) {
-        return { count: this.notificationsService.getUnreadCount(req.user.sub) };
+    async getUnreadCount(req) {
+        const count = await this.notificationsService.getUnreadCount(req.user.sub);
+        return { count };
+    }
+    create(body) {
+        return this.notificationsService.create(body);
     }
     markAsRead(id, req) {
         return this.notificationsService.markAsRead(id, req.user.sub);
@@ -35,11 +39,17 @@ let NotificationsController = class NotificationsController {
     markAllAsRead(req) {
         return this.notificationsService.markAllAsRead(req.user.sub);
     }
+    delete(id, req) {
+        return this.notificationsService.delete(id, req.user.sub);
+    }
+    deleteAll(req) {
+        return this.notificationsService.deleteAll(req.user.sub);
+    }
 };
 exports.NotificationsController = NotificationsController;
 __decorate([
     (0, common_1.Get)(),
-    openapi.ApiResponse({ status: 200, type: [Object] }),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -51,8 +61,16 @@ __decorate([
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "getUnreadCount", null);
+__decorate([
+    (0, common_1.Post)(),
+    openapi.ApiResponse({ status: 201, type: Object }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "create", null);
 __decorate([
     (0, common_1.Patch)(':id/read'),
     openapi.ApiResponse({ status: 200, type: Object }),
@@ -70,6 +88,23 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], NotificationsController.prototype, "markAllAsRead", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    openapi.ApiResponse({ status: 200, type: Object }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "delete", null);
+__decorate([
+    (0, common_1.Delete)(),
+    openapi.ApiResponse({ status: 200, type: Object }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "deleteAll", null);
 exports.NotificationsController = NotificationsController = __decorate([
     (0, swagger_1.ApiTags)('notifications'),
     (0, swagger_1.ApiBearerAuth)(),

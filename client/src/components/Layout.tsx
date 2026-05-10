@@ -3,16 +3,34 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { Role, ROLE_LABEL_KEYS } from '../types';
+import NotificationsBell from './notifications/NotificationsBell';
 
 const ALL_ROLES = Object.values(Role) as Role[];
 
-const NAV_ITEMS: { labelKey: string; path: string; roles: Role[] }[] = [
-  { labelKey: 'nav.dashboard', path: '/dashboard', roles: ALL_ROLES },
-  { labelKey: 'nav.schedule', path: '/schedule', roles: ALL_ROLES },
+const NAV_ITEMS: {
+  labelKey: string;
+  path: string;
+  roles: Role[];
+}[] = [
+  {
+    labelKey: 'nav.dashboard',
+    path: '/dashboard',
+    roles: ALL_ROLES,
+  },
+  {
+    labelKey: 'nav.schedule',
+    path: '/schedule',
+    roles: ALL_ROLES,
+  },
   {
     labelKey: 'nav.courses',
     path: '/courses',
-    roles: [Role.STUDENT, Role.TEACHER, Role.DEPARTMENT_HEAD, Role.DEAN],
+    roles: [
+      Role.STUDENT,
+      Role.TEACHER,
+      Role.DEPARTMENT_HEAD,
+      Role.DEAN,
+    ],
   },
   {
     labelKey: 'nav.assignments',
@@ -27,19 +45,26 @@ const NAV_ITEMS: { labelKey: string; path: string; roles: Role[] }[] = [
   {
     labelKey: 'nav.users',
     path: '/users',
-    roles: [Role.ADMIN, Role.PRESIDENT, Role.RECTOR, Role.DEAN],
+    roles: [
+      Role.ADMIN,
+      Role.PRESIDENT,
+      Role.RECTOR,
+      Role.DEAN,
+    ],
   },
 ];
 
 export default function Layout() {
   const navigate = useNavigate();
+
   const { t, i18n } = useTranslation();
+
   const { user, logout } = useAuthStore();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const unreadCount = 0;
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
 
-  const visibleNavItems = NAV_ITEMS.filter((item) =>
+  const visibleNavItems = NAV_ITEMS.filter(item =>
     user ? item.roles.includes(user.role) : false,
   );
 
@@ -55,18 +80,23 @@ export default function Layout() {
           type="button"
           className="fixed inset-0 z-30 bg-black/40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
-          aria-label="Close menu"
         />
       )}
 
       <aside
         className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-blue-900 text-white transform transition-transform duration-300
+          fixed inset-y-0 left-0 z-40
+          w-64 bg-blue-900 text-white
+          transform transition-transform duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
-        `}>
+        `}
+      >
         <div className="p-4 border-b border-blue-800">
-          <h1 className="text-lg font-bold">{t('app.title')}</h1>
+          <h1 className="text-lg font-bold">
+            {t('app.title')}
+          </h1>
+
           {user && (
             <p className="mt-1 text-sm text-blue-200">
               {t(ROLE_LABEL_KEYS[user.role])}
@@ -75,12 +105,13 @@ export default function Layout() {
         </div>
 
         <nav className="py-2">
-          {visibleNavItems.map((item) => (
+          {visibleNavItems.map(item => (
             <Link
               key={item.path}
               to={item.path}
               onClick={() => setSidebarOpen(false)}
-              className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors">
+              className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors"
+            >
               {t(item.labelKey)}
             </Link>
           ))}
@@ -88,52 +119,57 @@ export default function Layout() {
           <Link
             to="/notifications"
             onClick={() => setSidebarOpen(false)}
-            className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors">
+            className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors"
+          >
             {t('nav.notifications')}
-            {unreadCount > 0 && (
-              <span className="ml-2 inline-block rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">
-                {unreadCount}
-              </span>
-            )}
           </Link>
         </nav>
       </aside>
 
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 min-h-screen flex flex-col">
         <header className="sticky top-0 z-20 border-b bg-white px-4 py-3 shadow-sm sm:px-6">
           <div className="flex items-center justify-between gap-3">
             <button
               type="button"
-              onClick={() => setSidebarOpen((prev) => !prev)}
-              className="text-xl text-gray-700 lg:hidden">
+              onClick={() =>
+                setSidebarOpen(prev => !prev)
+              }
+              className="text-xl text-gray-700 lg:hidden"
+            >
               ☰
             </button>
 
             <div className="ml-auto flex items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500 hidden sm:inline">
+                <span className="hidden sm:inline text-sm text-gray-500">
                   {t('layout.language')}:
                 </span>
 
                 <button
                   type="button"
-                  onClick={() => i18n.changeLanguage('uk')}
+                  onClick={() =>
+                    i18n.changeLanguage('uk')
+                  }
                   className={`rounded px-2 py-1 text-sm ${
                     i18n.language.startsWith('uk')
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700'
-                  }`}>
+                  }`}
+                >
                   UA
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => i18n.changeLanguage('en')}
+                  onClick={() =>
+                    i18n.changeLanguage('en')
+                  }
                   className={`rounded px-2 py-1 text-sm ${
                     i18n.language.startsWith('en')
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700'
-                  }`}>
+                  }`}
+                >
                   EN
                 </button>
               </div>
@@ -146,17 +182,20 @@ export default function Layout() {
                 </div>
               )}
 
+              <NotificationsBell />
+
               <button
                 type="button"
                 onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-700">
+                className="text-sm text-red-600 hover:text-red-700"
+              >
                 {t('layout.logout')}
               </button>
             </div>
           </div>
         </header>
 
-        <main className="p-4 sm:p-6">
+        <main className="flex-1 p-4 sm:p-6">
           <Outlet />
         </main>
       </div>
