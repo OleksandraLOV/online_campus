@@ -12,8 +12,16 @@ import UsersPage from './pages/UsersPage';
 import { Role } from './types';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from './pages/ProfilePage';
+import { useEffect } from 'react';
+import { useAuthStore } from './store/authStore';
 
 export default function App() {
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
   return (
     <BrowserRouter>
       <Routes>
