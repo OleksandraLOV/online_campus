@@ -12,6 +12,7 @@ const NAV_ITEMS: {
   path: string;
   roles: Role[];
 }[] = [
+  { labelKey: 'nav.profile', path: '/profile', roles: ALL_ROLES },
   {
     labelKey: 'nav.dashboard',
     path: '/dashboard',
@@ -25,12 +26,7 @@ const NAV_ITEMS: {
   {
     labelKey: 'nav.courses',
     path: '/courses',
-    roles: [
-      Role.STUDENT,
-      Role.TEACHER,
-      Role.DEPARTMENT_HEAD,
-      Role.DEAN,
-    ],
+    roles: [Role.STUDENT, Role.TEACHER, Role.DEPARTMENT_HEAD, Role.DEAN],
   },
   {
     labelKey: 'nav.assignments',
@@ -45,12 +41,7 @@ const NAV_ITEMS: {
   {
     labelKey: 'nav.users',
     path: '/users',
-    roles: [
-      Role.ADMIN,
-      Role.PRESIDENT,
-      Role.RECTOR,
-      Role.DEAN,
-    ],
+    roles: [Role.ADMIN, Role.PRESIDENT, Role.RECTOR, Role.DEAN],
   },
 ];
 
@@ -59,34 +50,18 @@ export default function Layout() {
 
   const { t, i18n } = useTranslation();
 
-  const {
-    user,
-    logout,
-    loadProfile,
-    isAuthenticated,
-  } = useAuthStore();
+  const { user, logout, loadProfile, isAuthenticated } = useAuthStore();
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (
-      !user &&
-      isAuthenticated &&
-      localStorage.getItem('accessToken')
-    ) {
+    if (!user && isAuthenticated && localStorage.getItem('accessToken')) {
       loadProfile();
     }
-  }, [
-    user,
-    isAuthenticated,
-    loadProfile,
-  ]);
+  }, [user, isAuthenticated, loadProfile]);
 
-  const visibleNavItems = NAV_ITEMS.filter(item =>
-    user
-      ? item.roles.includes(user.role)
-      : false,
+  const visibleNavItems = NAV_ITEMS.filter((item) =>
+    user ? item.roles.includes(user.role) : false,
   );
 
   const handleLogout = () => {
@@ -109,18 +84,11 @@ export default function Layout() {
           fixed inset-y-0 left-0 z-40
           w-64 bg-blue-900 text-white
           transform transition-transform duration-300
-          ${
-            sidebarOpen
-              ? 'translate-x-0'
-              : '-translate-x-full'
-          }
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
-        `}
-      >
+        `}>
         <div className="p-4 border-b border-blue-800">
-          <h1 className="text-lg font-bold">
-            {t('app.title')}
-          </h1>
+          <h1 className="text-lg font-bold">{t('app.title')}</h1>
 
           {user && (
             <p className="mt-1 text-sm text-blue-200">
@@ -130,26 +98,20 @@ export default function Layout() {
         </div>
 
         <nav className="py-2">
-          {visibleNavItems.map(item => (
+          {visibleNavItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              onClick={() =>
-                setSidebarOpen(false)
-              }
-              className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors"
-            >
+              onClick={() => setSidebarOpen(false)}
+              className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors">
               {t(item.labelKey)}
             </Link>
           ))}
 
           <Link
             to="/notifications"
-            onClick={() =>
-              setSidebarOpen(false)
-            }
-            className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors"
-          >
+            onClick={() => setSidebarOpen(false)}
+            className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors">
             {t('nav.notifications')}
           </Link>
         </nav>
@@ -160,11 +122,8 @@ export default function Layout() {
           <div className="flex items-center justify-between gap-3">
             <button
               type="button"
-              onClick={() =>
-                setSidebarOpen(prev => !prev)
-              }
-              className="text-xl text-gray-700 lg:hidden"
-            >
+              onClick={() => setSidebarOpen((prev) => !prev)}
+              className="text-xl text-gray-700 lg:hidden">
               ☰
             </button>
 
@@ -176,40 +135,37 @@ export default function Layout() {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    i18n.changeLanguage('uk')
-                  }
+                  onClick={() => i18n.changeLanguage('uk')}
                   className={`rounded px-2 py-1 text-sm ${
                     i18n.language.startsWith('uk')
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
+                  }`}>
                   UA
                 </button>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    i18n.changeLanguage('en')
-                  }
+                  onClick={() => i18n.changeLanguage('en')}
                   className={`rounded px-2 py-1 text-sm ${
                     i18n.language.startsWith('en')
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
+                  }`}>
                   EN
                 </button>
               </div>
 
               {user && (
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user.lastName}{' '}
-                    {user.firstName}
-                  </p>
-                </div>
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-3 rounded-lg px-2 py-1 transition hover:bg-gray-100">
+                  <div className="hidden sm:block text-right">
+                    <p className="text-sm font-medium text-gray-900">
+                      {user.lastName} {user.firstName}
+                    </p>
+                  </div>
+                </Link>
               )}
 
               <NotificationsBell />
@@ -217,8 +173,7 @@ export default function Layout() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-700"
-              >
+                className="text-sm text-red-600 hover:text-red-700">
                 {t('layout.logout')}
               </button>
             </div>

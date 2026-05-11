@@ -11,6 +11,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import UsersPage from './pages/UsersPage';
 import { Role } from './types';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ProfilePage from './pages/ProfilePage';
 
 export default function App() {
   return (
@@ -19,7 +20,13 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="schedule" element={<SchedulePage />} />
@@ -28,9 +35,23 @@ export default function App() {
           <Route path="grades" element={<GradesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route
+            path="profile"
+            element={
+              <ProtectedRoute roles={Object.values(Role)}>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="users"
             element={
-              <ProtectedRoute allowedRoles={[Role.ADMIN, Role.PRESIDENT, Role.RECTOR, Role.DEAN]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  Role.ADMIN,
+                  Role.PRESIDENT,
+                  Role.RECTOR,
+                  Role.DEAN,
+                ]}>
                 <UsersPage />
               </ProtectedRoute>
             }
