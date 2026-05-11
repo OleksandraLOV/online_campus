@@ -6,10 +6,11 @@ import { useAuthStore } from '../store/authStore';
 import { loginSchema, type LoginFormData } from '../schemas/authSchema';
 import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { login: doLogin, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -42,28 +43,8 @@ export default function LoginPage() {
           "linear-gradient(rgba(10,25,47,0.30), rgba(10,25,47,0.30)), url('/login-bg.webp')",
         backgroundPosition: 'center 5%',
       }}>
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => i18n.changeLanguage('uk')}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-            i18n.language.startsWith('uk')
-              ? 'bg-blue-700 text-white'
-              : 'bg-white/90 text-gray-700 border border-gray-200 hover:bg-gray-50'
-          }`}>
-          UA
-        </button>
-
-        <button
-          type="button"
-          onClick={() => i18n.changeLanguage('en')}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-            i18n.language.startsWith('en')
-              ? 'bg-blue-700 text-white'
-              : 'bg-white/90 text-gray-700 border border-gray-200 hover:bg-gray-50'
-          }`}>
-          EN
-        </button>
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSwitcher showLabel={false} />
       </div>
 
       <div className="relative z-10 w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid lg:grid-cols-2">

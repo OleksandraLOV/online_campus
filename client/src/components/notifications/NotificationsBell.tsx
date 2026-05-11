@@ -10,9 +10,7 @@ export default function NotificationsBell() {
 
   const fetchUnreadCount = async () => {
     try {
-      const { data } = await api.get(
-        '/notifications/unread-count',
-      );
+      const { data } = await api.get('/notifications/unread-count');
 
       setCount(data.count);
     } catch (err) {
@@ -33,29 +31,14 @@ export default function NotificationsBell() {
   return (
     <button
       onClick={() => navigate('/notifications')}
-      className="
-        relative
-        flex
-        items-center
-        justify-center
-        w-10
-        h-10
-        rounded-full
-        border
-        border-gray-300
-        bg-white
-        hover:bg-gray-100
-        transition-colors
-      "
-    >
+      className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-300 bg-white transition hover:bg-gray-50 hover:border-gray-400">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={1.8}
         stroke="currentColor"
-        className="w-5 h-5 text-gray-600"
-      >
+        className="w-5 h-5 text-gray-600">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -80,8 +63,7 @@ export default function NotificationsBell() {
             items-center
             justify-center
             font-medium
-          "
-        >
+          ">
           {count}
         </span>
       )}

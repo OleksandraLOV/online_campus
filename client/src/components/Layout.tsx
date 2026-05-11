@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { Role, ROLE_LABEL_KEYS } from '../types';
 import NotificationsBell from './notifications/NotificationsBell';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const ALL_ROLES = Object.values(Role) as Role[];
 
@@ -48,7 +49,7 @@ const NAV_ITEMS: {
 export default function Layout() {
   const navigate = useNavigate();
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const { user, logout, loadProfile, isAuthenticated } = useAuthStore();
 
@@ -128,43 +129,15 @@ export default function Layout() {
             </button>
 
             <div className="ml-auto flex items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline text-sm text-gray-500">
-                  {t('layout.language')}:
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => i18n.changeLanguage('uk')}
-                  className={`rounded px-2 py-1 text-sm ${
-                    i18n.language.startsWith('uk')
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700'
-                  }`}>
-                  UA
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => i18n.changeLanguage('en')}
-                  className={`rounded px-2 py-1 text-sm ${
-                    i18n.language.startsWith('en')
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700'
-                  }`}>
-                  EN
-                </button>
-              </div>
+              <LanguageSwitcher />
 
               {user && (
                 <Link
                   to="/profile"
-                  className="flex items-center gap-3 rounded-lg px-2 py-1 transition hover:bg-gray-100">
-                  <div className="hidden sm:block text-right">
-                    <p className="text-sm font-medium text-gray-900">
-                      {user.lastName} {user.firstName}
-                    </p>
-                  </div>
+                  className="hidden sm:flex h-14 items-center rounded-full border border-gray-300 px-6 transition hover:bg-gray-50 hover:border-gray-400">
+                  <p className="text-sm font-medium text-gray-900">
+                    {user.lastName} {user.firstName}
+                  </p>
                 </Link>
               )}
 
