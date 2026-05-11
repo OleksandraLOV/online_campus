@@ -20,7 +20,7 @@ export class AuditLogService {
   private readonly logger = new Logger(AuditLogService.name);
 
   // Phase 1 - логування в консоль/файл
-  // Phase 2 - збереження даних в MongoDB через Prisma
+  // Phase 2 - збереження даних в MongoDB через Mongoose
   logAction(entry: AuditLogEntry): void {
     const logMessage = `[AUDIT] Action: ${entry.action} | User: ${entry.userLogin || 'Guest'} | IP: ${entry.ipAddress} | Result: ${entry.result}`;
 
