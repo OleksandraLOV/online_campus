@@ -1,72 +1,50 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
+import { Link } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 import api from '../../services/api';
 
 export default function NotificationsBell() {
-  const [count, setCount] = useState(0);
-
-  const navigate = useNavigate();
-
-  const fetchUnreadCount = async () => {
-    try {
-      const { data } = await api.get('/notifications/unread-count');
-
-      setCount(data.count);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    fetchUnreadCount();
+    let isMounted = true;
 
-    const interval = setInterval(() => {
-      fetchUnreadCount();
-    }, 15000);
+    const loadUnreadCount = () => {
+      api
+        .get('/notifications/unread-count')
+        .then((res) => {
+          if (isMounted) {
+            setUnreadCount(res.data.count ?? 0);
+          }
+        })
+        .catch(() => {
+          if (isMounted) {
+            setUnreadCount(0);
+          }
+        });
+    };
 
-    return () => clearInterval(interval);
+    loadUnreadCount();
+
+    const intervalId = window.setInterval(loadUnreadCount, 30000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   return (
-    <button
-      onClick={() => navigate('/notifications')}
-      className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-300 bg-white transition hover:bg-gray-50 hover:border-gray-400">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.8}
-        stroke="currentColor"
-        className="w-5 h-5 text-gray-600">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M14.857 17.082a23.848 23.848 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0m5.714 0H18a2 2 0 0 0 2-2v-1.586a1 1 0 0 0-.293-.707l-1.414-1.414A2 2 0 0 1 18 9.586V9a6 6 0 1 0-12 0v.586a2 2 0 0 1-.293 1.707L4.293 12.707A1 1 0 0 0 4 13.414V15a2 2 0 0 0 2 2h2.857"
-        />
-      </svg>
+    <Link
+      to="/notifications"
+      className="relative flex h-14 w-14 items-center justify-center rounded-full border border-gray-300 bg-white transition hover:bg-gray-50 hover:border-gray-400">
+      <Bell className="h-5 w-5 text-gray-700" />
 
-      {count > 0 && (
-        <span
-          className="
-            absolute
-            -top-1
-            -right-1
-            min-w-[18px]
-            h-[18px]
-            px-1
-            rounded-full
-            bg-red-500
-            text-white
-            text-[11px]
-            flex
-            items-center
-            justify-center
-            font-medium
-          ">
-          {count}
+      {unreadCount > 0 && (
+        <span className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+          {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}
-    </button>
+    </Link>
   );
 }

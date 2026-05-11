@@ -37,7 +37,7 @@ export default function App() {
           <Route
             path="profile"
             element={
-              <ProtectedRoute roles={Object.values(Role)}>
+              <ProtectedRoute>
                 <ProfilePage />
               </ProtectedRoute>
             }
