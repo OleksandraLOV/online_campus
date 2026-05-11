@@ -3,8 +3,6 @@ services:
     build: ./server
     restart: unless-stopped
     volumes:
-      - ./server:/app
-      - /app/node_modules
       - ./server/uploads:/app/uploads
     ports:
       - '${PORT:-3000}:3000'
