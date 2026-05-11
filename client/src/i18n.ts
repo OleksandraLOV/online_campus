@@ -10,9 +10,9 @@ const resources = {
 
       'nav.dashboard': 'Дашборд',
       'nav.schedule': 'Розклад',
-      'nav.courses': 'Дисципліни',
+      'nav.courses': 'Вибір дисциплін',
       'nav.assignments': 'Завдання',
-      'nav.grades': 'Оцінки',
+      'nav.grades': 'Залікова книжка',
       'nav.users': 'Користувачі',
       'nav.notifications': 'Сповіщення',
 
@@ -26,6 +26,19 @@ const resources = {
       'auth.submit': 'Увійти',
       'auth.loading': 'Вхід...',
       'auth.testAccounts': 'Тестові акаунти (пароль: password123)',
+      'auth.title': 'Вхід до системи',
+      'auth.subtitle': 'Введіть логін та пароль для доступу до кабінету.',
+      'auth.forgotPassword': 'Забули пароль?',
+
+      'login.left.academyFull':
+        'Міжрегіональна Академія\nуправління персоналом',
+      'login.left.tagline1': 'Твій цифровий простір освіти в МАУП.',
+      'login.left.tagline2':
+        'Освітня платформа, що об’єднує студентів, викладачів і адміністрацію для спільного розвитку та досягнення нових професійних висот!',
+      'login.stats.students': 'студентів',
+      'login.stats.access': 'доступ',
+      'login.stats.courses': 'курсів',
+      'login.logoAlt': 'МАУП',
 
       'roles.student': 'Студент',
       'roles.teacher': 'Викладач',
@@ -124,9 +137,9 @@ const resources = {
 
       'nav.dashboard': 'Dashboard',
       'nav.schedule': 'Schedule',
-      'nav.courses': 'Courses',
+      'nav.courses': 'Choice of subject',
       'nav.assignments': 'Assignments',
-      'nav.grades': 'Grades',
+      'nav.grades': 'Transcript',
       'nav.users': 'Users',
       'nav.notifications': 'Notifications',
 
@@ -140,6 +153,19 @@ const resources = {
       'auth.submit': 'Sign in',
       'auth.loading': 'Signing in...',
       'auth.testAccounts': 'Test accounts (password: password123)',
+      'auth.title': 'Sign in',
+      'auth.subtitle': 'Enter your login and password to access your account.',
+      'auth.forgotPassword': 'Forgot password?',
+
+      'login.left.academyFull':
+        'Interregional Academy of\nPersonnel Management',
+      'login.left.tagline1': 'Your digital education space at IAPM.',
+      'login.left.tagline2':
+        'An educational platform that brings together students, teachers, and administration for shared growth and new professional achievements!',
+      'login.stats.students': 'students',
+      'login.stats.access': 'access',
+      'login.stats.courses': 'courses',
+      'login.logoAlt': 'IAPM',
 
       'roles.student': 'Student',
       'roles.teacher': 'Teacher',
