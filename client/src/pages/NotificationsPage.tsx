@@ -15,7 +15,16 @@ export default function NotificationsPage() {
 
   const { user } = useAuthStore();
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const locale =
+    i18n.language === 'en'
+      ? 'en-US'
+      : 'uk-UA';
+
+  const unreadCount = notifications.filter(
+    n => !n.readFlag,
+  ).length;
 
   const fetchNotifications = async () => {
     try {
@@ -121,22 +130,26 @@ export default function NotificationsPage() {
       </div>
 
       <div className="mb-5 flex flex-wrap gap-3">
-        <button
-          onClick={handleMarkAllRead}
-          className="rounded-lg border border-gray-400 px-4 py-2 transition-colors hover:bg-gray-200"
-        >
-          Позначити всі як прочитані
-        </button>
+        {unreadCount > 0 && (
+          <button
+            onClick={handleMarkAllRead}
+            className="rounded-lg border border-gray-400 px-4 py-2 transition-colors hover:bg-gray-200"
+          >
+            Позначити всі як прочитані
+          </button>
+        )}
 
-        <button
-          onClick={handleDeleteAll}
-          className="rounded-lg border border-red-300 px-4 py-2 text-red-600 transition-colors hover:bg-red-50"
-        >
-          Видалити всі
-        </button>
+        {notifications.length > 0 && (
+          <button
+            onClick={handleDeleteAll}
+            className="rounded-lg border border-red-300 px-4 py-2 text-red-600 transition-colors hover:bg-red-50"
+          >
+            Видалити всі
+          </button>
+        )}
       </div>
 
-      <div>
+      <div className="space-y-3">
         {notifications.length === 0 && (
           <p className="text-gray-500">
             Немає сповіщень
@@ -144,12 +157,19 @@ export default function NotificationsPage() {
         )}
 
         {notifications.map(notification => (
-          <NotificationItem
-            key={notification.id}
-            notification={notification}
-            onRead={handleRead}
-            onDelete={handleDelete}
-          />
+          <div key={notification.id}>
+            <NotificationItem
+              notification={notification}
+              onRead={handleRead}
+              onDelete={handleDelete}
+            />
+
+            <div className="mt-1 text-right text-xs text-gray-400">
+              {new Date(
+                notification.createdAt,
+              ).toLocaleDateString(locale)}
+            </div>
+          </div>
         ))}
       </div>
 

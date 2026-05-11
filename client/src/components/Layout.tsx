@@ -1,5 +1,5 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { Role, ROLE_LABEL_KEYS } from '../types';
@@ -59,13 +59,34 @@ export default function Layout() {
 
   const { t, i18n } = useTranslation();
 
-  const { user, logout } = useAuthStore();
+  const {
+    user,
+    logout,
+    loadProfile,
+    isAuthenticated,
+  } = useAuthStore();
 
   const [sidebarOpen, setSidebarOpen] =
     useState(false);
 
+  useEffect(() => {
+    if (
+      !user &&
+      isAuthenticated &&
+      localStorage.getItem('accessToken')
+    ) {
+      loadProfile();
+    }
+  }, [
+    user,
+    isAuthenticated,
+    loadProfile,
+  ]);
+
   const visibleNavItems = NAV_ITEMS.filter(item =>
-    user ? item.roles.includes(user.role) : false,
+    user
+      ? item.roles.includes(user.role)
+      : false,
   );
 
   const handleLogout = () => {
@@ -88,7 +109,11 @@ export default function Layout() {
           fixed inset-y-0 left-0 z-40
           w-64 bg-blue-900 text-white
           transform transition-transform duration-300
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${
+            sidebarOpen
+              ? 'translate-x-0'
+              : '-translate-x-full'
+          }
           lg:translate-x-0
         `}
       >
@@ -109,7 +134,9 @@ export default function Layout() {
             <Link
               key={item.path}
               to={item.path}
-              onClick={() => setSidebarOpen(false)}
+              onClick={() =>
+                setSidebarOpen(false)
+              }
               className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors"
             >
               {t(item.labelKey)}
@@ -118,7 +145,9 @@ export default function Layout() {
 
           <Link
             to="/notifications"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() =>
+              setSidebarOpen(false)
+            }
             className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors"
           >
             {t('nav.notifications')}
@@ -177,7 +206,8 @@ export default function Layout() {
               {user && (
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium text-gray-900">
-                    {user.lastName} {user.firstName}
+                    {user.lastName}{' '}
+                    {user.firstName}
                   </p>
                 </div>
               )}
