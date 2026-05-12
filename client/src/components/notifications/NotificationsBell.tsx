@@ -8,31 +8,27 @@ export default function NotificationsBell() {
 
   const navigate = useNavigate();
 
-  const fetchUnreadCount = async () => {
-    try {
-      const { data } = await api.get(
-        '/notifications/unread-count',
-      );
-
-      setCount(data.count);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const { data } = await api.get(
+          '/notifications/unread-count',
+        );
+
+        setCount(data.count);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     fetchUnreadCount();
-
-    const interval = setInterval(() => {
-      fetchUnreadCount();
-    }, 15000);
-
-    return () => clearInterval(interval);
   }, []);
 
   return (
     <button
-      onClick={() => navigate('/notifications')}
+      onClick={() =>
+        navigate('/notifications')
+      }
       className="
         relative
         flex
