@@ -3,11 +3,14 @@ import api from '../services/api';
 import type { User } from '../types';
 import { Role, ROLE_LABEL_KEYS } from '../types';
 import { useTranslation } from 'react-i18next';
+import CreateUserModal from '../components/CreateUserModal';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -16,9 +19,12 @@ export default function UsersPage() {
 
     api
       .get(`/users?${params}`)
-      .then(({ data }) => setUsers(data))
+      .then(({ data }) => {
+        const fetchedUsers = Array.isArray(data) ? data : data.docs || [];
+        setUsers(fetchedUsers);
+      })
       .catch(() => {});
-  }, [roleFilter]);
+  }, [roleFilter, refreshKey]);
 
   const handleSearch = async () => {
     if (!search.trim()) return;
@@ -34,9 +40,17 @@ export default function UsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        {t('users.title')}
-      </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">
+          {t('users.title')}
+        </h1>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
+        >
+          + Додати користувача
+        </button>
+      </div>
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
@@ -128,6 +142,12 @@ export default function UsersPage() {
           </tbody>
         </table>
       </div>
+
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => setRefreshKey((prev) => prev + 1)}
+      />
     </div>
   );
 }

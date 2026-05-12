@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { InjectModel } from '@nestjs/mongoose';
 import { PaginateModel } from 'mongoose';
 import { User, UserDocument } from './schemas';
@@ -11,13 +12,14 @@ import {
 } from '../common/utils/transform.util';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedDto } from '../common/dto/paginated.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: PaginateModel<UserDocument>,
-  ) {}
+  ) { }
 
   async findAll(
     paginationDto: PaginationDto,
@@ -27,10 +29,49 @@ export class UsersService {
     const options = {
       page,
       limit,
+      sort: { createdAt: -1 },
     };
     const query = role ? { role } : {};
     const result = await this.userModel.paginate(query, options);
     return transformToPaginatedDto(UserDto, result);
+  }
+
+  async create(createUserDto: CreateUserDto): Promise<UserDto> {
+    const { login, email, password, groupId, recordBookNumber, year, departmentId, position, ...rest } = createUserDto;
+
+    const existingUser = await this.userModel.findOne({
+      $or: [{ login }, { email }],
+    });
+
+    if (existingUser) {
+      throw new ConflictException(
+        'Користувач з таким логіном або ел.адресою вже існує',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    let studentProfile;
+    if (rest.role === Role.STUDENT && groupId && recordBookNumber && year) {
+      studentProfile = { group: groupId, recordBookNumber, year };
+    }
+
+    let teacherProfile;
+    if (rest.role === Role.TEACHER && departmentId && position) {
+      teacherProfile = { department: departmentId, position };
+    }
+
+    const newUser = new this.userModel({
+      login,
+      email,
+      passwordHash,
+      studentProfile,
+      teacherProfile,
+      ...rest,
+    });
+
+    const savedUser = await newUser.save();
+    return transformToDto(UserDto, savedUser);
   }
 
   async findOne(id: string): Promise<UserDto> {
