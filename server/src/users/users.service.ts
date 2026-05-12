@@ -4,7 +4,6 @@ import { Model } from 'mongoose';
 import { User } from './schemas';
 import { Role } from '../common/types/roles.enum';
 import { UserDto } from './dto/user.dto';
-
 import {
   transformToDto,
   transformToDtoArray,
@@ -77,5 +76,17 @@ export class UsersService {
       .exec();
 
     return transformToDtoArray(UserDto, users);
+  }
+
+  async findByLogin(login: string): Promise<User | null> {
+    return this.userModel.findOne({ login }).exec();
+  }
+
+  async findByIdWithPassword(id: string): Promise<User | null> {
+    return this.userModel.findById(id).exec();
+  }
+
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await this.userModel.findByIdAndUpdate(id, { passwordHash }).exec();
   }
 }
