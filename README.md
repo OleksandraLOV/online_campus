@@ -84,7 +84,7 @@
 │                                                          │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │                 DATA LAYER                        │   │
-│  │  In-Memory Mock → MongoDB (Prisma) [Phase 2]      │   │
+│  │  In-Memory Mock → MongoDB (Mongoose) [Phase 2]      │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -98,7 +98,7 @@
 | **API Client** | Axios-інстанс з JWT interceptors (auto-refresh) |
 | **Controller** | NestJS controllers — прийом HTTP-запитів, валідація DTO |
 | **Service** | Бізнес-логіка, оркестрація модулів |
-| **Data** | Репозиторії / mock-дані / Prisma ORM |
+| **Data** | Репозиторії / mock-дані / Mongoose ODM |
 
 ---
 
@@ -116,7 +116,7 @@
 | bcryptjs | — | Хешування паролів |
 | class-validator | — | Валідація DTO |
 | Helmet | — | HTTP security headers |
-| Prisma | — | ORM для MongoDB [Phase 2] |
+| Mongoose | — | ODM для MongoDB [Phase 2] |
 | MongoDB | 7 | База даних [Phase 2] |
 
 ### Фронтенд
@@ -722,7 +722,7 @@ Student        (базовий доступ)
 
 | Вразливість | Захист |
 |-------------|--------|
-| SQL Injection | Parameterized queries через Prisma ORM |
+| SQL Injection | Parameterized queries через Mongoose ODM |
 | XSS | `Content-Security-Policy`, React escaping |
 | CSRF | `SameSite=Strict` cookie, CORS обмеження |
 | Brute Force | Rate limiting на /auth/login |
@@ -744,7 +744,7 @@ Student        (базовий доступ)
 ### База даних
 
 - Phase 1: In-memory mock data
-- Phase 2: MongoDB через Prisma (одна зміна в data layer, бізнес-логіка не змінюється)
+- Phase 2: MongoDB через Mongoose (одна зміна в data layer, бізнес-логіка не змінюється)
 
 ### Нові типи сповіщень
 
@@ -777,7 +777,7 @@ Student        (базовий доступ)
 
 | # | Завдання |
 |---|----------|
-| 1 | MongoDB + Prisma ORM замість mock-даних |
+| 1 | MongoDB + Mongoose ODM замість mock-даних |
 | 2 | Міграції схеми |
 | 3 | FileModule — завантаження файлів (матеріали, здачі) |
 | 4 | CRUD для всіх довідників через UI |
