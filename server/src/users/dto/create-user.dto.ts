@@ -6,6 +6,7 @@ import {
   IsString,
   IsNumber,
   MinLength,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Role } from '../../common/types/roles.enum';
@@ -15,12 +16,16 @@ export class CreateUserDto {
   @ApiProperty({ example: 'student1' })
   @IsString()
   @IsNotEmpty()
+  @MinLength(2, { message: 'Логін має містити мінімум 2 символи' })
   login: string;
 
-  @ApiProperty({ example: 'password123' })
+  @ApiProperty({ example: 'Password1' })
   @IsString()
   @IsNotEmpty()
-  @MinLength(6, { message: 'Password must be at least 6 characters long' })
+  @MinLength(8, { message: 'Пароль має містити мінімум 8 символів' })
+  @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/, {
+    message: 'Пароль має містити лише англійські літери та цифри (мінімум одна літера і одна цифра)',
+  })
   password: string;
 
   @ApiProperty({ enum: Role })

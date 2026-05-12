@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/roles.guard';
@@ -8,6 +8,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedDto } from '../common/dto/paginated.dto';
 import { UserDto } from './dto/user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiPaginatedResponse } from '../common/swagger/api-paginated.response';
 
 @ApiTags('users')
@@ -21,6 +22,18 @@ export class UsersController {
   @Roles(Role.ADMIN)
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADMIN)
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(id, updateUserDto);
+  }
+
+  @Patch(':id/block')
+  @Roles(Role.ADMIN)
+  toggleBlock(@Param('id') id: string) {
+    return this.usersService.toggleBlock(id);
   }
 
   @Get()

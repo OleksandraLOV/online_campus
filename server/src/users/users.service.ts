@@ -13,6 +13,7 @@ import {
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedDto } from '../common/dto/paginated.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +31,7 @@ export class UsersService {
       page,
       limit,
       sort: { createdAt: -1 },
+      lean: true,
     };
     const query = role ? { role } : {};
     const result = await this.userModel.paginate(query, options);
@@ -71,7 +73,73 @@ export class UsersService {
     });
 
     const savedUser = await newUser.save();
-    return transformToDto(UserDto, savedUser);
+    return transformToDto(UserDto, savedUser.toObject());
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
+    const { login, email, password, groupId, recordBookNumber, year, departmentId, position, ...rest } = updateUserDto;
+
+    const existingUser = await this.userModel.findById(id);
+    if (!existingUser) {
+      throw new NotFoundException('Користувача не знайдено');
+    }
+
+    if (login || email) {
+      const duplicateUser = await this.userModel.findOne({
+        $or: [
+          ...(login ? [{ login }] : []),
+          ...(email ? [{ email }] : []),
+        ],
+        _id: { $ne: id },
+      });
+      if (duplicateUser) {
+        throw new ConflictException('Користувач з таким логіном або email вже існує');
+      }
+    }
+
+    const updateData: any = { ...rest };
+    if (login) updateData.login = login;
+    if (email) updateData.email = email;
+
+    if (password) {
+      updateData.passwordHash = await bcrypt.hash(password, 12);
+    }
+
+    const currentRole = rest.role || existingUser.role;
+
+    if (currentRole === Role.STUDENT) {
+      updateData.studentProfile = {
+        group: groupId || existingUser.studentProfile?.group,
+        recordBookNumber: recordBookNumber || existingUser.studentProfile?.recordBookNumber,
+        year: year !== undefined ? year : existingUser.studentProfile?.year,
+      };
+    } else if (currentRole === Role.TEACHER) {
+      updateData.teacherProfile = {
+        department: departmentId || existingUser.teacherProfile?.department,
+        position: position || existingUser.teacherProfile?.position,
+      };
+    }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, lean: true },
+    );
+
+    return transformToDto(UserDto, updatedUser);
+  }
+
+  async toggleBlock(id: string): Promise<UserDto> {
+    const user = await this.userModel.findById(id);
+    if (!user) throw new NotFoundException('Користувача не знайдено');
+
+    const newStatus = user.status === 'active' ? 'blocked' : 'active';
+    const updated = await this.userModel.findByIdAndUpdate(
+      id,
+      { $set: { status: newStatus } },
+      { new: true, lean: true },
+    );
+    return transformToDto(UserDto, updated);
   }
 
   async findOne(id: string): Promise<UserDto> {
