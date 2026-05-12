@@ -10,8 +10,18 @@ export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const { t } = useTranslation();
+
+  const handleToggleBlock = async (user: User) => {
+    try {
+      const { data: updated } = await api.patch(`/users/${user.id}/block`);
+      setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, status: updated.status } : u)));
+    } catch {
+      // error
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -48,7 +58,7 @@ export default function UsersPage() {
           onClick={() => setIsCreateModalOpen(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
         >
-          + Додати користувача
+          {t('users.addUser')}
         </button>
       </div>
 
@@ -103,6 +113,9 @@ export default function UsersPage() {
               <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase">
                 {t('users.status')}
               </th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase">
+              {t('users.actions')}
+              </th>
             </tr>
           </thead>
 
@@ -137,6 +150,42 @@ export default function UsersPage() {
                       : t('users.statusBlocked')}
                   </span>
                 </td>
+
+                <td className="p-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingUser(user);
+                        setIsCreateModalOpen(true);
+                      }}
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                      title={t('users.edit') || 'Редагувати'}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleToggleBlock(user)}
+                      className={`transition-colors ${
+                        user.status === 'active'
+                          ? 'text-red-500 hover:text-red-700'
+                          : 'text-green-600 hover:text-green-800'
+                      }`}
+                      title={user.status === 'active' ? t('users.block') : t('users.unblock')}
+                    >
+                      {user.status === 'active' ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -145,7 +194,11 @@ export default function UsersPage() {
 
       <CreateUserModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        userToEdit={editingUser}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setEditingUser(null);
+        }}
         onSuccess={() => setRefreshKey((prev) => prev + 1)}
       />
     </div>

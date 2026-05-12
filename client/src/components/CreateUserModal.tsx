@@ -7,9 +7,10 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  userToEdit?: any | null;
 }
 
-export default function CreateUserModal({ isOpen, onClose, onSuccess }: Props) {
+export default function CreateUserModal({ isOpen, onClose, onSuccess, userToEdit }: Props) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     login: '',
@@ -29,31 +30,97 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: Props) {
   const [groups, setGroups] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/;
+
+  const validatePassword = (pwd: string) => {
+    if (!pwd) return '';
+    if (pwd.length < 8) return 'Пароль має містити мінімум 8 символів';
+    if (!PASSWORD_REGEX.test(pwd)) return 'Пароль має містити лише англійські літери та цифри (мінімум одна літера і одна цифра)';
+    return '';
+  };
 
   useEffect(() => {
     if (isOpen) {
-      if (formData.role === Role.STUDENT && groups.length === 0) {
-        api.get('/references/groups').then(({ data }) => setGroups(data)).catch(() => {});
-      } else if (formData.role === Role.TEACHER && departments.length === 0) {
-        api.get('/references/departments').then(({ data }) => setDepartments(data)).catch(() => {});
+      if (userToEdit) {
+        setFormData({
+          login: userToEdit.login || '',
+          password: '',
+          role: userToEdit.role || Role.STUDENT,
+          email: userToEdit.email || '',
+          firstName: userToEdit.firstName || '',
+          lastName: userToEdit.lastName || '',
+          middleName: userToEdit.middleName || '',
+          phone: userToEdit.phone || '',
+          groupId: userToEdit.studentProfile?.group?.id || userToEdit.studentProfile?.group || '',
+          recordBookNumber: userToEdit.studentProfile?.recordBookNumber || '',
+          year: userToEdit.studentProfile?.year || 1,
+          departmentId: userToEdit.teacherProfile?.department?.id || userToEdit.teacherProfile?.department || '',
+          position: userToEdit.teacherProfile?.position || '',
+        });
+      } else {
+        setFormData({
+          login: '',
+          password: '',
+          role: Role.STUDENT,
+          email: '',
+          firstName: '',
+          lastName: '',
+          middleName: '',
+          phone: '',
+          groupId: '',
+          recordBookNumber: '',
+          year: 1,
+          departmentId: '',
+          position: '',
+        });
       }
     }
-  }, [isOpen, formData.role]);
+  }, [isOpen, userToEdit]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get('/references/groups').then(({ data }) => setGroups(data)).catch(() => {});
+    api.get('/references/departments').then(({ data }) => setDepartments(data)).catch(() => {});
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
     setFormData({ ...formData, [e.target.name]: value });
+    if (e.target.name === 'password') {
+      setPasswordError(validatePassword(e.target.value));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    // validate password if filled
+    if (formData.password) {
+      const pwdErr = validatePassword(formData.password);
+      if (pwdErr) {
+        setPasswordError(pwdErr);
+        setLoading(false);
+        return;
+      }
+    }
     try {
-      await api.post('/users', formData);
+      const payload = { ...formData };
+      if (userToEdit && !payload.password) {
+        delete payload.password; // Don't send empty password when editing
+      }
+
+      if (userToEdit) {
+        await api.patch(`/users/${userToEdit.id}`, payload);
+      } else {
+        await api.post('/users', payload);
+      }
       onSuccess();
       onClose();
       setFormData({
@@ -82,7 +149,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: Props) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-semibold">Створити користувача</h2>
+          <h2 className="text-xl font-semibold">{userToEdit ? 'Редагувати користувача' : 'Створити користувача'}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -160,20 +227,30 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: Props) {
                   value={formData.login}
                   onChange={handleChange}
                   required
+                  minLength={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 />
+                <p className="mt-1 text-xs text-gray-400">Мінімум 2 символи</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Пароль *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Пароль {!userToEdit && '*'}</label>
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  required={!userToEdit}
+                  minLength={8}
+                  placeholder={userToEdit ? 'Залиште порожнім, щоб не змінювати' : ''}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${
+                    passwordError ? 'border-red-400' : 'border-gray-300'
+                  }`}
                 />
+                {passwordError ? (
+                  <p className="mt-1 text-xs text-red-500">{passwordError}</p>
+                ) : (
+                  <p className="mt-1 text-xs text-gray-400">Мінімум 8 символів, літери + цифри</p>
+                )}
               </div>
             </div>
 
@@ -217,7 +294,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: Props) {
                       <option value="">Оберіть групу</option>
                       {groups.map((g) => (
                         <option key={g.id || g._id} value={g.id || g._id}>
-                          {g.name}
+                          {g.code}
                         </option>
                       ))}
                     </select>
