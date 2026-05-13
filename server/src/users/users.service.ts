@@ -22,6 +22,41 @@ export class UsersService {
     private readonly userModel: PaginateModel<UserDocument>,
   ) { }
 
+  async addRefreshTokenHash(userId: string, tokenHash: string): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        $addToSet: { refreshTokenHashes: tokenHash },
+      })
+      .exec();
+  }
+
+  async removeRefreshTokenHash(
+    userId: string,
+    tokenHash: string,
+  ): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(userId, { $pull: { refreshTokenHashes: tokenHash } })
+      .exec();
+  }
+
+  async removeAllRefreshTokenHashes(userId: string): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(userId, { $set: { refreshTokenHashes: [] } })
+      .exec();
+  }
+
+  async findByLogin(login: string): Promise<User | null> {
+    return this.userModel.findOne({ login }).exec();
+  }
+
+  async findByIdWithPassword(id: string): Promise<User | null> {
+    return this.userModel.findById(id).exec();
+  }
+
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await this.userModel.findByIdAndUpdate(id, { passwordHash }).exec();
+  }
+  
   async findAll(
     paginationDto: PaginationDto,
     role?: Role,
@@ -125,7 +160,6 @@ export class UsersService {
       { $set: updateData },
       { new: true, lean: true },
     );
-
     return transformToDto(UserDto, updatedUser);
   }
 
@@ -156,7 +190,6 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Користувача не знайдено');
     }
-
     return transformToDto(UserDto, user);
   }
 
@@ -166,7 +199,6 @@ export class UsersService {
       .find({ $or: [{ firstName: q }, { lastName: q }, { middleName: q }] })
       .select('-passwordHash')
       .exec();
-
     return transformToDtoArray(UserDto, users);
   }
 
@@ -179,7 +211,6 @@ export class UsersService {
       .find(filter)
       .select('-passwordHash')
       .exec();
-
     return transformToDtoArray(UserDto, users);
   }
 
@@ -192,19 +223,6 @@ export class UsersService {
       .find(filter)
       .select('-passwordHash')
       .exec();
-
     return transformToDtoArray(UserDto, users);
-  }
-
-  async findByLogin(login: string): Promise<User | null> {
-    return this.userModel.findOne({ login }).exec();
-  }
-
-  async findByIdWithPassword(id: string): Promise<User | null> {
-    return this.userModel.findById(id).exec();
-  }
-
-  async updatePassword(id: string, passwordHash: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(id, { passwordHash }).exec();
   }
 }
