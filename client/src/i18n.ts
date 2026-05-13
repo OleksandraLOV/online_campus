@@ -115,6 +115,10 @@ const resources = {
       'users.status': 'Статус',
       'users.statusActive': 'Активний',
       'users.statusBlocked': 'Заблокований',
+      'users.actions': 'Дії',
+      'users.addUser': '+ Додати користувача',
+      'users.block': 'Заблокувати',
+      'users.unblock': 'Розблокувати',
     },
   },
   en: {
@@ -229,6 +233,10 @@ const resources = {
       'users.status': 'Status',
       'users.statusActive': 'Active',
       'users.statusBlocked': 'Blocked',
+      'users.actions': 'Actions',
+      'users.addUser': '+ Add user',
+      'users.block': 'Block',
+      'users.unblock': 'Unblock',
     },
   },
 };

@@ -6,6 +6,14 @@ import { User } from '../schemas';
 class StudentProfileDto {
   @ApiProperty()
   @Expose()
+  @Transform(({ obj }) => {
+    const g = obj?.group;
+    return g?._id?.toString() ?? g?.toString() ?? g ?? null;
+  })
+  group: any;
+
+  @ApiProperty()
+  @Expose()
   recordBookNumber: string;
 
   @ApiProperty()
@@ -14,6 +22,14 @@ class StudentProfileDto {
 }
 
 class TeacherProfileDto {
+  @ApiProperty()
+  @Expose()
+  @Transform(({ obj }) => {
+    const d = obj?.department;
+    return d?._id?.toString() ?? d?.toString() ?? d ?? null;
+  })
+  department: any;
+
   @ApiProperty()
   @Expose()
   position: string;
