@@ -15,20 +15,9 @@ import { AuditLogModule } from '../audit-log/audit-log.module';
     AuditLogModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService): JwtModuleOptions => {
-        const expiresInVal = config.get<string>('JWT_EXPIRES_IN') || '15m';
-
-        const jwtConfig: JwtModuleOptions = {
-          secret: config.get<string>('JWT_SECRET'),
-          signOptions: {},
-        };
-
-        if (jwtConfig.signOptions) {
-          Object.assign(jwtConfig.signOptions, { expiresIn: expiresInVal });
-        }
-
-        return jwtConfig;
-      },
+      useFactory: (config: ConfigService): JwtModuleOptions => ({
+        secret: config.get<string>('JWT_SECRET'),
+      }),
     }),
   ],
   controllers: [AuthController],

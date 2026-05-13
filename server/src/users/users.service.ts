@@ -19,6 +19,29 @@ export class UsersService {
     private readonly userModel: PaginateModel<UserDocument>,
   ) {}
 
+  async addRefreshTokenHash(userId: string, tokenHash: string): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        $addToSet: { refreshTokenHashes: tokenHash },
+      })
+      .exec();
+  }
+
+  async removeRefreshTokenHash(
+    userId: string,
+    tokenHash: string,
+  ): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(userId, { $pull: { refreshTokenHashes: tokenHash } })
+      .exec();
+  }
+
+  async removeAllRefreshTokenHashes(userId: string): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(userId, { $set: { refreshTokenHashes: [] } })
+      .exec();
+  }
+
   async findAll(
     paginationDto: PaginationDto,
     role?: Role,
