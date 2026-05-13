@@ -33,16 +33,13 @@ export class NotificationsService {
 
     const notifications = await this.notificationModel
       .find({
-        $or: [
-          { userId: userObjId },
-          { userId: null },
-        ],
+        $or: [{ userId: userObjId }, { userId: null }],
       })
       .sort({ createdAt: -1 });
 
-    return notifications.map(n => ({
+    return notifications.map((n) => ({
       ...n.toObject({ virtuals: true }),
-      readFlag: n.readBy?.some(id => id.equals(userObjId)) ?? false,
+      readFlag: n.readBy?.some((id) => id.equals(userObjId)) ?? false,
     }));
   }
 
@@ -50,10 +47,7 @@ export class NotificationsService {
     const userObjId = new Types.ObjectId(userId);
 
     return this.notificationModel.countDocuments({
-      $or: [
-        { userId: userObjId },
-        { userId: null },
-      ],
+      $or: [{ userId: userObjId }, { userId: null }],
       readBy: { $nin: [userObjId] },
     });
   }
@@ -64,10 +58,7 @@ export class NotificationsService {
     return this.notificationModel.findOneAndUpdate(
       {
         _id: new Types.ObjectId(id),
-        $or: [
-          { userId: userObjId },
-          { userId: null },
-        ],
+        $or: [{ userId: userObjId }, { userId: null }],
       },
       { $addToSet: { readBy: userObjId } },
       { new: true },
@@ -79,10 +70,7 @@ export class NotificationsService {
 
     await this.notificationModel.updateMany(
       {
-        $or: [
-          { userId: userObjId },
-          { userId: null },
-        ],
+        $or: [{ userId: userObjId }, { userId: null }],
         readBy: { $nin: [userObjId] },
       },
       { $addToSet: { readBy: userObjId } },
@@ -95,10 +83,7 @@ export class NotificationsService {
     const userObjId = new Types.ObjectId(userId);
     return this.notificationModel.findOneAndDelete({
       _id: new Types.ObjectId(id),
-      $or: [
-        { userId: userObjId },
-        { userId: null },
-      ],
+      $or: [{ userId: userObjId }, { userId: null }],
     });
   }
 

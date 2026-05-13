@@ -35,7 +35,7 @@ import { FilesModule } from './files/files.module';
 
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads', 
+      serveRoot: '/uploads',
     }),
 
     MongooseModule.forRootAsync({
@@ -70,7 +70,6 @@ import { FilesModule } from './files/files.module';
       useClass: AuditInterceptor,
     },
     ExistsInDatabaseConstraint,
-    FilesModule,
   ],
 })
 export class AppModule {}

@@ -12,11 +12,12 @@ import {
 } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { LogoutDto } from './dto/logout.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 
 interface RequestWithUser extends Request {
-  user: { sub: string; login: string };
+  user: { sub: string; login: string; role?: string };
 }
 
 @ApiTags('auth')
@@ -29,11 +30,37 @@ export class AuthController {
   @ApiOperation({ summary: 'Login user' })
   @ApiBody({ type: LoginDto })
   @ApiResponse({ status: 201, type: AuthResponseDto })
+  @ApiResponse({ status: 401, description: 'Невірний логін або пароль' })
+  @ApiResponse({ status: 403, description: 'Обліковий запис заблоковано' })
+  @ApiResponse({ status: 429, description: 'Too Many Requests' })
   async login(@Body() body: LoginDto, @Req() req: Request) {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     const userAgent = req.get('user-agent') || 'unknown';
-
     return this.authService.login(body.login, body.password, ip, userAgent);
+  }
+
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @Post('refresh')
+  @ApiOperation({ summary: 'Refresh JWT token' })
+  @ApiBody({ type: RefreshDto })
+  @ApiResponse({ status: 200, description: 'New access/refresh tokens issued' })
+  @ApiResponse({ status: 401, description: 'Невірний refresh token' })
+  refresh(@Body() body: RefreshDto, @Req() req: Request) {
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const userAgent = req.get('user-agent') || 'unknown';
+    return this.authService.refresh(body.refreshToken, ip, userAgent);
+  }
+
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @Post('logout')
+  @ApiOperation({ summary: 'Logout (revoke refresh token)' })
+  @ApiBody({ type: LogoutDto })
+  @ApiResponse({ status: 200, description: 'Logged out' })
+  @ApiResponse({ status: 401, description: 'Невірний refresh token' })
+  logout(@Body() body: LogoutDto, @Req() req: Request) {
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const userAgent = req.get('user-agent') || 'unknown';
+    return this.authService.logout(body.refreshToken, ip, userAgent);
   }
 
   @ApiBearerAuth()
@@ -43,26 +70,22 @@ export class AuthController {
   @ApiBody({ type: ChangePasswordDto })
   @ApiResponse({ status: 200, description: 'Пароль успішно змінено' })
   @ApiResponse({ status: 400, description: 'Невірний старий пароль' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async changePassword(
     @Body() body: ChangePasswordDto,
     @Req() req: RequestWithUser,
   ) {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     const userAgent = req.get('user-agent') || 'unknown';
-
     return this.authService.changePassword(req.user.sub, body, ip, userAgent);
-  }
-
-  @Post('refresh')
-  @ApiOperation({ summary: 'Refresh JWT token' })
-  refresh(@Body() body: RefreshDto) {
-    return this.authService.refresh(body.refreshToken);
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, description: 'Current user profile' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getProfile(@Req() req: RequestWithUser) {
     return this.authService.getProfile(req.user.sub);
   }
