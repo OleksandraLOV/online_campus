@@ -2,7 +2,6 @@ import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { Request } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -15,8 +14,9 @@ import { RefreshDto } from './dto/refresh.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import { RequestWithId } from '../common/middleware/request-id.middleware';
 
-interface RequestWithUser extends Request {
+interface RequestWithUser extends RequestWithId {
   user: { sub: string; login: string; role?: string };
 }
 
@@ -33,10 +33,16 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Невірний логін або пароль' })
   @ApiResponse({ status: 403, description: 'Обліковий запис заблоковано' })
   @ApiResponse({ status: 429, description: 'Too Many Requests' })
-  async login(@Body() body: LoginDto, @Req() req: Request) {
+  async login(@Body() body: LoginDto, @Req() req: RequestWithId) {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     const userAgent = req.get('user-agent') || 'unknown';
-    return this.authService.login(body.login, body.password, ip, userAgent);
+    return this.authService.login(
+      body.login,
+      body.password,
+      ip,
+      userAgent,
+      req.requestId,
+    );
   }
 
   @Throttle({ default: { limit: 30, ttl: 60000 } })
@@ -45,10 +51,15 @@ export class AuthController {
   @ApiBody({ type: RefreshDto })
   @ApiResponse({ status: 200, description: 'New access/refresh tokens issued' })
   @ApiResponse({ status: 401, description: 'Невірний refresh token' })
-  refresh(@Body() body: RefreshDto, @Req() req: Request) {
+  refresh(@Body() body: RefreshDto, @Req() req: RequestWithId) {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     const userAgent = req.get('user-agent') || 'unknown';
-    return this.authService.refresh(body.refreshToken, ip, userAgent);
+    return this.authService.refresh(
+      body.refreshToken,
+      ip,
+      userAgent,
+      req.requestId,
+    );
   }
 
   @Throttle({ default: { limit: 30, ttl: 60000 } })
@@ -57,10 +68,15 @@ export class AuthController {
   @ApiBody({ type: LogoutDto })
   @ApiResponse({ status: 200, description: 'Logged out' })
   @ApiResponse({ status: 401, description: 'Невірний refresh token' })
-  logout(@Body() body: LogoutDto, @Req() req: Request) {
+  logout(@Body() body: LogoutDto, @Req() req: RequestWithId) {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     const userAgent = req.get('user-agent') || 'unknown';
-    return this.authService.logout(body.refreshToken, ip, userAgent);
+    return this.authService.logout(
+      body.refreshToken,
+      ip,
+      userAgent,
+      req.requestId,
+    );
   }
 
   @ApiBearerAuth()
@@ -77,7 +93,13 @@ export class AuthController {
   ) {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     const userAgent = req.get('user-agent') || 'unknown';
-    return this.authService.changePassword(req.user.sub, body, ip, userAgent);
+    return this.authService.changePassword(
+      req.user.sub,
+      body,
+      ip,
+      userAgent,
+      req.requestId,
+    );
   }
 
   @ApiBearerAuth()
