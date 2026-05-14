@@ -130,6 +130,10 @@
 | Zustand | 4 | State management (auth, UI state) |
 | Axios | — | HTTP-клієнт з interceptors |
 | React Router | 6 | Клієнтський роутинг |
+| React Hook Form | 7 | Form state management |
+| Zod | 3 | Schema validation |
+| @hookform/resolvers | — | React Hook Form + Zod integration |
+| Lucide React | — | Icon library |
 
 ### Інфраструктура
 
