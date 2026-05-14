@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../store/authStore';
-import { Role, ROLE_LABEL_KEYS } from '../types';
-import type { ScheduleEntry, Notification } from '../types';
-import api from '../services/api';
+import { useAuthStore } from '../../store/authStore';
+import { Role, ROLE_LABEL_KEYS } from '../../types';
+import type { ScheduleEntry, Notification } from '../../types';
+import api from '../../services/api';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();

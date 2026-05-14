@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import api from '../services/api';
-import type { Notification } from '../types';
-import { useAuthStore } from '../store/authStore';
-import CreateNotificationModal from '../components/notifications/CreateNotificationModal';
-import NotificationItem from '../components/notifications/NotificationItem';
+import api from '../../services/api';
+import type { Notification } from '../../types';
+import { useAuthStore } from '../../store/authStore';
+import CreateNotificationModal from '../../components/notifications/CreateNotificationModal';
+import NotificationItem from '../../components/notifications/NotificationItem';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] =

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import api from '../services/api';
-import type { User } from '../types';
-import { Role, ROLE_LABEL_KEYS } from '../types';
+import api from '../../services/api';
+import type { User } from '../../types';
+import { Role, ROLE_LABEL_KEYS } from '../../types';
 import { useTranslation } from 'react-i18next';
-import CreateUserModal from '../components/CreateUserModal';
+import CreateUserModal from '../../components/CreateUserModal';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);

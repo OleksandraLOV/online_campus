@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import api from '../services/api';
-import type { Assignment } from '../types';
+import api from '../../services/api';
+import type { Assignment } from '../../types';
 import { useTranslation } from 'react-i18next';
 
 export default function AssignmentsPage() {

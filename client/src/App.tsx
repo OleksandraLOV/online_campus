@@ -1,16 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import SchedulePage from './pages/SchedulePage';
-import CoursesPage from './pages/CoursesPage';
-import AssignmentsPage from './pages/AssignmentsPage';
-import GradesPage from './pages/GradesPage';
-import NotificationsPage from './pages/NotificationsPage';
-import UsersPage from './pages/UsersPage';
+import LoginPage from './pages/auth/LoginPage';
+import DashboardPage from './pages/shared/DashboardPage';
+import SchedulePage from './pages/shared/SchedulePage';
+import CoursesPage from './pages/course/CoursesPage';
+import AssignmentsPage from './pages/student/AssignmentsPage';
+import GradesPage from './pages/student/GradesPage';
+import NotificationsPage from './pages/shared/NotificationsPage';
+import UsersPage from './pages/admin/UsersPage';
 import { Role } from './types';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 
 export default function App() {
   return (
