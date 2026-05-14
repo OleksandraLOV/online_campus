@@ -65,8 +65,9 @@ export class AuthService {
   async login(
     login: string,
     pass: string,
-    ipAddress: string = 'unknown',
-    userAgent: string = 'unknown',
+    ipAddress = 'unknown',
+    userAgent = 'unknown',
+    requestId?: string,
   ) {
     const user = (await this.usersService.findByLogin(
       login,
@@ -81,6 +82,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'Invalid credentials' },
+        requestId,
       });
       throw new UnauthorizedException('Невірний логін або пароль');
     }
@@ -94,6 +96,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'Account is blocked' },
+        requestId,
       });
       throw new ForbiddenException('Обліковий запис заблоковано');
     }
@@ -103,7 +106,6 @@ export class AuthService {
       login: user.login,
       role: user.role,
     };
-
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
@@ -119,6 +121,7 @@ export class AuthService {
       ipAddress,
       userAgent,
       result: 'success',
+      requestId,
     });
 
     const userObj = user.toObject();
@@ -127,18 +130,12 @@ export class AuthService {
     Reflect.deleteProperty(safeUser, 'passwordHash');
     Reflect.deleteProperty(safeUser, 'refreshTokenHashes');
 
-    return {
-      accessToken,
-      refreshToken,
-      user: safeUser,
-    };
+    return { accessToken, refreshToken, user: safeUser };
   }
 
   async getProfile(userId: string) {
     const userDto = await this.usersService.findOne(userId);
-    if (!userDto) {
-      throw new UnauthorizedException('Користувача не знайдено');
-    }
+    if (!userDto) throw new UnauthorizedException('Користувача не знайдено');
     return userDto;
   }
 
@@ -146,6 +143,7 @@ export class AuthService {
     refreshToken: string,
     ipAddress = 'unknown',
     userAgent = 'unknown',
+    requestId?: string,
   ) {
     let decoded: unknown;
 
@@ -160,6 +158,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: getJwtVerifyFailureReason(err) },
+        requestId,
       });
       throw new UnauthorizedException('Невірний refresh token');
     }
@@ -173,6 +172,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'Invalid refresh token payload' },
+        requestId,
       });
       throw new UnauthorizedException('Невірний refresh token');
     }
@@ -190,6 +190,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'User not found' },
+        requestId,
       });
       throw new UnauthorizedException('Користувача не знайдено');
     }
@@ -203,6 +204,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'Account is blocked' },
+        requestId,
       });
       throw new ForbiddenException('Обліковий запис заблоковано');
     }
@@ -221,6 +223,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'Refresh token revoked or unknown' },
+        requestId,
       });
       throw new UnauthorizedException('Невірний refresh token');
     }
@@ -232,7 +235,6 @@ export class AuthService {
       login: user.login,
       role: user.role,
     };
-
     const newAccessToken = this.jwtService.sign(newPayload, {
       expiresIn: '15m',
     });
@@ -252,18 +254,17 @@ export class AuthService {
       ipAddress,
       userAgent,
       result: 'success',
+      requestId,
     });
 
-    return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    };
+    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 
   async logout(
     refreshToken: string,
     ipAddress = 'unknown',
     userAgent = 'unknown',
+    requestId?: string,
   ) {
     let decoded: unknown;
 
@@ -278,6 +279,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: getJwtVerifyFailureReason(err) },
+        requestId,
       });
       throw new UnauthorizedException('Невірний refresh token');
     }
@@ -291,6 +293,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'Invalid refresh token payload' },
+        requestId,
       });
       throw new UnauthorizedException('Невірний refresh token');
     }
@@ -308,6 +311,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'User not found' },
+        requestId,
       });
       throw new UnauthorizedException('Користувача не знайдено');
     }
@@ -321,6 +325,7 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'Account is blocked' },
+        requestId,
       });
       throw new ForbiddenException('Обліковий запис заблоковано');
     }
@@ -337,6 +342,7 @@ export class AuthService {
       ipAddress,
       userAgent,
       result: 'success',
+      requestId,
     });
 
     return { message: 'Logged out' };
@@ -347,14 +353,13 @@ export class AuthService {
     dto: ChangePasswordDto,
     ipAddress: string,
     userAgent: string,
+    requestId?: string,
   ) {
     const user = (await this.usersService.findByIdWithPassword(
       userId,
     )) as unknown as AuthUser | null;
 
-    if (!user) {
-      throw new UnauthorizedException('Користувача не знайдено');
-    }
+    if (!user) throw new UnauthorizedException('Користувача не знайдено');
 
     const isPasswordValid = await bcrypt.compare(
       dto.oldPassword,
@@ -370,13 +375,13 @@ export class AuthService {
         userAgent,
         result: 'failure',
         details: { reason: 'Invalid old password' },
+        requestId,
       });
       throw new BadRequestException('Невірний старий пароль');
     }
 
     const newPasswordHash = await bcrypt.hash(dto.newPassword, 12);
     await this.usersService.updatePassword(userId, newPasswordHash);
-
     await this.usersService.removeAllRefreshTokenHashes(user.id);
 
     this.auditLogService.logAction({
@@ -386,6 +391,7 @@ export class AuthService {
       ipAddress,
       userAgent,
       result: 'success',
+      requestId,
     });
 
     return { message: 'Пароль успішно змінено' };
