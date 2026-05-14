@@ -421,22 +421,47 @@ src/
 │   ├── ProtectedRoute.tsx   ← route guard
 │   ├── RoleBadge.tsx
 │   └── NotificationBell.tsx
-└── pages/
-    ├── LoginPage.tsx
-    ├── DashboardPage.tsx
-    ├── SchedulePage.tsx
-    ├── ScheduleAdminPage.tsx ← [dispatcher, admin]
-    ├── CoursesPage.tsx
-    ├── CourseDetailPage.tsx
-    ├── AssignmentsPage.tsx
-    ├── GradesPage.tsx
-    ├── SurveysPage.tsx       ← список активних опитувань [student, teacher]
-    ├── SurveyPlayerPage.tsx  ← проходження опитування
-    ├── SurveyAdminPage.tsx   ← створення/керування [admin, dean]
-    ├── SurveyResultsPage.tsx ← результати [admin, dean+]
-    ├── NotificationsPage.tsx
-    ├── UsersPage.tsx         ← [admin]
-    └── ReportsPage.tsx       ← [department_head+]
+└── pages/                   ← role-based pages architecture
+    │
+    ├── auth/                ← authentication pages
+    │   ├── LoginPage.tsx
+    │   └── ForgotPasswordPage.tsx
+    │
+    ├── shared/              ← pages shared між декількома ролями
+    │   ├── DashboardPage.tsx
+    │   ├── SchedulePage.tsx
+    │   ├── NotificationsPage.tsx
+    │   └── NewsPage.tsx
+    │
+    ├── student/             ← student-specific pages
+    │   ├── ProfilePage.tsx
+    │   ├── ExamsPage.tsx
+    │   ├── GradesPage.tsx
+    │   ├── DisciplineChoicePage.tsx
+    │   └── SurveysPage.tsx
+    │
+    ├── teacher/             ← teacher workflows
+    │   ├── TeacherCoursesPage.tsx
+    │   ├── GradeSubmissionsPage.tsx
+    │   └── TeacherSurveysPage.tsx
+    │
+    ├── dean/                ← dean and department management pages
+    │   ├── ReportsPage.tsx
+    │   └── SurveyManagementPage.tsx
+    │
+    ├── admin/               ← system administration pages
+    │   ├── UsersPage.tsx
+    │   ├── RolesPage.tsx
+    │   ├── AuditLogsPage.tsx
+    │   └── NewsManagementPage.tsx
+    │
+    ├── dispatcher/          ← schedule management pages
+    │   ├── ScheduleManagementPage.tsx
+    │   └── ClassroomsPage.tsx
+    │
+    └── course/              ← course-related shared modules
+        ├── CoursesPage.tsx
+        └── CourseDetailPage.tsx
 ```
 
 ---
@@ -887,21 +912,46 @@ online_campus/
         │   ├── RoleBadge.tsx
         │   └── NotificationBell.tsx
         └── pages/
-            ├── LoginPage.tsx
-            ├── DashboardPage.tsx
-            ├── SchedulePage.tsx
-            ├── ScheduleAdminPage.tsx
-            ├── CoursesPage.tsx
-            ├── CourseDetailPage.tsx
-            ├── AssignmentsPage.tsx
-            ├── GradesPage.tsx
-            ├── SurveysPage.tsx
-            ├── SurveyPlayerPage.tsx
-            ├── SurveyAdminPage.tsx
-            ├── SurveyResultsPage.tsx
-            ├── NotificationsPage.tsx
-            ├── UsersPage.tsx
-            └── ReportsPage.tsx
+            │
+            ├── auth/
+            │   ├── LoginPage.tsx
+            │   └── ForgotPasswordPage.tsx
+            │
+            ├── shared/
+            │   ├── DashboardPage.tsx
+            │   ├── SchedulePage.tsx
+            │   ├── NotificationsPage.tsx
+            │   └── NewsPage.tsx
+            │
+            ├── student/
+            │   ├── ProfilePage.tsx
+            │   ├── ExamsPage.tsx
+            │   ├── GradesPage.tsx
+            │   ├── DisciplineChoicePage.tsx
+            │   └── SurveysPage.tsx
+            │
+            ├── teacher/
+            │   ├── TeacherCoursesPage.tsx
+            │   ├── GradeSubmissionsPage.tsx
+            │   └── TeacherSurveysPage.tsx
+            │
+            ├── dean/
+            │   ├── ReportsPage.tsx
+            │   └── SurveyManagementPage.tsx
+            │
+            ├── admin/
+            │   ├── UsersPage.tsx
+            │   ├── RolesPage.tsx
+            │   ├── AuditLogsPage.tsx
+            │   └── NewsManagementPage.tsx
+            │
+            ├── dispatcher/
+            │   ├── ScheduleManagementPage.tsx
+            │   └── ClassroomsPage.tsx
+            │
+            └── course/
+                ├── CoursesPage.tsx
+                └── CourseDetailPage.tsx
 ```
 
 ---
