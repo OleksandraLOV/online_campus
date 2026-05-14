@@ -4,14 +4,23 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as compression from 'compression';
-
 import { useContainer } from 'class-validator';
+import { json, urlencoded } from 'express';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
+  // Захист: Довіра проксі (nginx, docker) для коректного req.ip
+  app.set('trust proxy', 1);
+
+  // Захист: Ліміт на розмір тіла запиту (захист від DDoS великими payload)
+  app.use(json({ limit: '1mb' }));
+  app.use(urlencoded({ extended: true, limit: '1mb' }));
+
+  // Захист: Security headers
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -19,6 +28,7 @@ async function bootstrap() {
         process.env.NODE_ENV === 'production' ? undefined : false,
     }),
   );
+
   app.use(compression());
 
   app.setGlobalPrefix('api');
@@ -29,11 +39,13 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   });
 
+  // Захист: Сувора валідація
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
+      validationError: { target: false, value: false }, // Не зливати дані в errors
     }),
   );
 
@@ -48,7 +60,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT ?? 3000;
+  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port);
   console.log(`Server running on http://localhost:${port}`);
   console.log(
@@ -56,7 +68,7 @@ async function bootstrap() {
   );
 }
 
-bootstrap().catch((err) => {
+bootstrap().catch((err: unknown) => {
   console.error('Error during bootstrap:', err);
   process.exit(1);
 });
