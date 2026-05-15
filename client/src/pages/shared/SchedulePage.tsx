@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import api from '../services/api';
-import type { ScheduleEntry } from '../types';
+import api from '../../services/api';
+import type { ScheduleEntry } from '../../types';
 import { useTranslation } from 'react-i18next';
 
 const TYPE_LABEL_KEYS: Record<string, string> = {

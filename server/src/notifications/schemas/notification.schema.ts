@@ -16,7 +16,13 @@ export class Notification {
 
   @Prop({
     required: true,
-    enum: ['schedule_change', 'new_assignment', 'grade', 'announcement', 'system'],
+    enum: [
+      'schedule_change',
+      'new_assignment',
+      'grade',
+      'announcement',
+      'system',
+    ],
   })
   type: string;
 

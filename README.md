@@ -84,7 +84,7 @@
 │                                                          │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │                 DATA LAYER                        │   │
-│  │  In-Memory Mock → MongoDB (Prisma) [Phase 2]      │   │
+│  │  In-Memory Mock → MongoDB (Mongoose) [Phase 2]      │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -98,7 +98,7 @@
 | **API Client** | Axios-інстанс з JWT interceptors (auto-refresh) |
 | **Controller** | NestJS controllers — прийом HTTP-запитів, валідація DTO |
 | **Service** | Бізнес-логіка, оркестрація модулів |
-| **Data** | Репозиторії / mock-дані / Prisma ORM |
+| **Data** | Репозиторії / mock-дані / Mongoose ODM |
 
 ---
 
@@ -116,7 +116,7 @@
 | bcryptjs | — | Хешування паролів |
 | class-validator | — | Валідація DTO |
 | Helmet | — | HTTP security headers |
-| Prisma | — | ORM для MongoDB [Phase 2] |
+| Mongoose | — | ODM для MongoDB [Phase 2] |
 | MongoDB | 7 | База даних [Phase 2] |
 
 ### Фронтенд
@@ -130,6 +130,10 @@
 | Zustand | 4 | State management (auth, UI state) |
 | Axios | — | HTTP-клієнт з interceptors |
 | React Router | 6 | Клієнтський роутинг |
+| React Hook Form | 7 | Form state management |
+| Zod | 3 | Schema validation |
+| @hookform/resolvers | — | React Hook Form + Zod integration |
+| Lucide React | — | Icon library |
 
 ### Інфраструктура
 
@@ -421,22 +425,47 @@ src/
 │   ├── ProtectedRoute.tsx   ← route guard
 │   ├── RoleBadge.tsx
 │   └── NotificationBell.tsx
-└── pages/
-    ├── LoginPage.tsx
-    ├── DashboardPage.tsx
-    ├── SchedulePage.tsx
-    ├── ScheduleAdminPage.tsx ← [dispatcher, admin]
-    ├── CoursesPage.tsx
-    ├── CourseDetailPage.tsx
-    ├── AssignmentsPage.tsx
-    ├── GradesPage.tsx
-    ├── SurveysPage.tsx       ← список активних опитувань [student, teacher]
-    ├── SurveyPlayerPage.tsx  ← проходження опитування
-    ├── SurveyAdminPage.tsx   ← створення/керування [admin, dean]
-    ├── SurveyResultsPage.tsx ← результати [admin, dean+]
-    ├── NotificationsPage.tsx
-    ├── UsersPage.tsx         ← [admin]
-    └── ReportsPage.tsx       ← [department_head+]
+└── pages/                   ← role-based pages architecture
+    │
+    ├── auth/                ← authentication pages
+    │   ├── LoginPage.tsx
+    │   └── ForgotPasswordPage.tsx
+    │
+    ├── shared/              ← pages shared між декількома ролями
+    │   ├── DashboardPage.tsx
+    │   ├── SchedulePage.tsx
+    │   ├── NotificationsPage.tsx
+    │   └── NewsPage.tsx
+    │
+    ├── student/             ← student-specific pages
+    │   ├── ProfilePage.tsx
+    │   ├── ExamsPage.tsx
+    │   ├── GradesPage.tsx
+    │   ├── DisciplineChoicePage.tsx
+    │   └── SurveysPage.tsx
+    │
+    ├── teacher/             ← teacher workflows
+    │   ├── TeacherCoursesPage.tsx
+    │   ├── GradeSubmissionsPage.tsx
+    │   └── TeacherSurveysPage.tsx
+    │
+    ├── dean/                ← dean and department management pages
+    │   ├── ReportsPage.tsx
+    │   └── SurveyManagementPage.tsx
+    │
+    ├── admin/               ← system administration pages
+    │   ├── UsersPage.tsx
+    │   ├── RolesPage.tsx
+    │   ├── AuditLogsPage.tsx
+    │   └── NewsManagementPage.tsx
+    │
+    ├── dispatcher/          ← schedule management pages
+    │   ├── ScheduleManagementPage.tsx
+    │   └── ClassroomsPage.tsx
+    │
+    └── course/              ← course-related shared modules
+        ├── CoursesPage.tsx
+        └── CourseDetailPage.tsx
 ```
 
 ---
@@ -722,7 +751,7 @@ Student        (базовий доступ)
 
 | Вразливість | Захист |
 |-------------|--------|
-| SQL Injection | Parameterized queries через Prisma ORM |
+| SQL Injection | Parameterized queries через Mongoose ODM |
 | XSS | `Content-Security-Policy`, React escaping |
 | CSRF | `SameSite=Strict` cookie, CORS обмеження |
 | Brute Force | Rate limiting на /auth/login |
@@ -744,7 +773,7 @@ Student        (базовий доступ)
 ### База даних
 
 - Phase 1: In-memory mock data
-- Phase 2: MongoDB через Prisma (одна зміна в data layer, бізнес-логіка не змінюється)
+- Phase 2: MongoDB через Mongoose (одна зміна в data layer, бізнес-логіка не змінюється)
 
 ### Нові типи сповіщень
 
@@ -777,7 +806,7 @@ Student        (базовий доступ)
 
 | # | Завдання |
 |---|----------|
-| 1 | MongoDB + Prisma ORM замість mock-даних |
+| 1 | MongoDB + Mongoose ODM замість mock-даних |
 | 2 | Міграції схеми |
 | 3 | FileModule — завантаження файлів (матеріали, здачі) |
 | 4 | CRUD для всіх довідників через UI |
@@ -887,21 +916,46 @@ online_campus/
         │   ├── RoleBadge.tsx
         │   └── NotificationBell.tsx
         └── pages/
-            ├── LoginPage.tsx
-            ├── DashboardPage.tsx
-            ├── SchedulePage.tsx
-            ├── ScheduleAdminPage.tsx
-            ├── CoursesPage.tsx
-            ├── CourseDetailPage.tsx
-            ├── AssignmentsPage.tsx
-            ├── GradesPage.tsx
-            ├── SurveysPage.tsx
-            ├── SurveyPlayerPage.tsx
-            ├── SurveyAdminPage.tsx
-            ├── SurveyResultsPage.tsx
-            ├── NotificationsPage.tsx
-            ├── UsersPage.tsx
-            └── ReportsPage.tsx
+            │
+            ├── auth/
+            │   ├── LoginPage.tsx
+            │   └── ForgotPasswordPage.tsx
+            │
+            ├── shared/
+            │   ├── DashboardPage.tsx
+            │   ├── SchedulePage.tsx
+            │   ├── NotificationsPage.tsx
+            │   └── NewsPage.tsx
+            │
+            ├── student/
+            │   ├── ProfilePage.tsx
+            │   ├── ExamsPage.tsx
+            │   ├── GradesPage.tsx
+            │   ├── DisciplineChoicePage.tsx
+            │   └── SurveysPage.tsx
+            │
+            ├── teacher/
+            │   ├── TeacherCoursesPage.tsx
+            │   ├── GradeSubmissionsPage.tsx
+            │   └── TeacherSurveysPage.tsx
+            │
+            ├── dean/
+            │   ├── ReportsPage.tsx
+            │   └── SurveyManagementPage.tsx
+            │
+            ├── admin/
+            │   ├── UsersPage.tsx
+            │   ├── RolesPage.tsx
+            │   ├── AuditLogsPage.tsx
+            │   └── NewsManagementPage.tsx
+            │
+            ├── dispatcher/
+            │   ├── ScheduleManagementPage.tsx
+            │   └── ClassroomsPage.tsx
+            │
+            └── course/
+                ├── CoursesPage.tsx
+                └── CourseDetailPage.tsx
 ```
 
 ---
