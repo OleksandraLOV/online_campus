@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { Material, Submission } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -36,4 +37,28 @@ api.interceptors.response.use(
   },
 );
 
+export const filesApi = {
+  uploadMaterial: async (caId: string, title: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', title);
+    
+    return api.post<Material>(`/courses/${caId}/materials`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  submitAssignment: async (assignmentId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return api.post<Submission>(`/courses/assignments/${assignmentId}/submit`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  
+  deleteFile: async (fileId: string) => {
+    return api.delete(`/files/${fileId}`);
+  }
+};
 export default api;

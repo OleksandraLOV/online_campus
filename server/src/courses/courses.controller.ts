@@ -1,4 +1,5 @@
-import { Controller, Get, Param, UseGuards, Request } from '@nestjs/common';
+import {Controller, Get, Post, Param, UseGuards, Request, UseInterceptors, UploadedFile, Body} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { CoursesService } from './courses.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -61,4 +62,27 @@ export class CoursesController {
   getSubmissions(@Param('assignmentId') assignmentId: string) {
     return this.coursesService.findSubmissions(assignmentId);
   }
-}
+  @Post(':courseAssignmentId/materials')
+  @Roles(Role.TEACHER, Role.DEPARTMENT_HEAD, Role.ADMIN)
+  @UseInterceptors(FileInterceptor('file'))
+  uploadMaterial(
+    @Param('courseAssignmentId') caId: string,
+    @Body('title') title: string,
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.coursesService.saveMaterial(caId, title, file, req.user.sub);
+  }
+
+  @Post('assignments/:assignmentId/submit')
+  @Roles(Role.STUDENT)
+  @UseInterceptors(FileInterceptor('file'))
+  submitAssignment(
+    @Param('assignmentId') assignmentId: string,
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.coursesService.submitAssignment(assignmentId, req.user.sub, file);
+  }
+  }
+

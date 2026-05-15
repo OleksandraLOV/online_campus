@@ -11,6 +11,7 @@ import {
   teacherProfiles,
   users,
 } from '../common/mock-data';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class CoursesService {
@@ -59,10 +60,25 @@ export class CoursesService {
   }
 
   // ============ MATERIALS ============
-
+  constructor(private filesService: FilesService) {}
   findMaterials(courseAssignmentId: string) {
     return materials.filter((m) => m.courseAssignmentId === courseAssignmentId);
   }
+  async saveMaterial(caId: string, title: string, file: Express.Multer.File, teacherId: string) {
+  const savedFile = await this.filesService.saveFile(file, teacherId);
+
+  const newMaterial = {
+    id: Math.random().toString(36).substring(2, 9),
+    courseAssignmentId: caId,
+    title,
+    fileLink: savedFile.fileLink,
+    originalName: file.originalname,
+    publishDate: new Date().toISOString(),
+  };
+
+  materials.push(newMaterial);
+  return newMaterial;
+}
 
   // ============ ASSIGNMENTS ============
 
@@ -111,7 +127,22 @@ export class CoursesService {
         };
       });
   }
+  async submitAssignment(assignmentId: string, studentId: string, file: Express.Multer.File) {
+    const savedFile = await this.filesService.saveFile(file, studentId);
 
+    const newSubmission = {
+      id: Math.random().toString(36).substring(2, 9),
+      assignmentId,
+      studentId,
+      submittedAt: new Date().toISOString(),
+      fileLink: savedFile.fileLink,
+      originalName: file.originalname,
+      status: 'submitted' as const,
+    };
+
+    submissions.push(newSubmission);
+    return newSubmission;
+  }
   // ============ GRADES ============
 
   findGradesByStudent(studentId: string) {

@@ -121,3 +121,25 @@ export interface Notification {
   createdAt: string;
   readFlag: boolean;
 }
+
+export interface Material {
+  id: string;
+  courseAssignmentId: string;
+  title: string;
+  description?: string;
+  fileLink: string;
+  originalName: string;
+  publishDate: string;
+}
+
+export interface Submission {
+  id: string;
+  assignmentId: string;
+  studentId: string;
+  submittedAt: string;
+  fileLink: string;
+  originalName: string;
+  score?: number;
+  comment?: string;
+  status: 'submitted' | 'graded' | 'returned';
+}
