@@ -1,19 +1,16 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  SetMetadata,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role, ROLE_HIERARCHY } from '../common/types/roles.enum';
+import { AuthenticatedRequest } from '../common/types/authenticated-request';
 
 export const ROLES_KEY = 'roles';
 
-export function Roles(...roles: Role[]) {
-  return (target: any, key?: string | symbol, descriptor?: any) => {
-    if (descriptor) {
-      Reflect.defineMetadata(ROLES_KEY, roles, descriptor.value);
-      return descriptor;
-    }
-    Reflect.defineMetadata(ROLES_KEY, roles, target);
-    return target;
-  };
-}
+export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -29,10 +26,10 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const { user } = context.switchToHttp().getRequest<AuthenticatedRequest>();
     if (!user) return false;
 
-    const userRole = user.role as Role;
+    const userRole = user.role;
 
     // Direct role match
     if (requiredRoles.includes(userRole)) {

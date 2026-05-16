@@ -7,14 +7,14 @@ import {
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { AuditLogService } from './audit-log.service';
-import { Request } from 'express';
+import { RequestWithId } from '../common/middleware/request-id.middleware';
 
 interface JwtUser {
   sub: string;
   login: string;
 }
 
-interface AuthenticatedRequest extends Request {
+interface AuthenticatedRequest extends RequestWithId {
   user?: JwtUser;
 }
 
@@ -31,6 +31,7 @@ export class AuditInterceptor implements NestInterceptor {
     const method = request.method;
     const url = request.url;
     const action = `${method} ${url}`;
+    const requestId = request.requestId;
 
     return next.handle().pipe(
       tap(() => {
@@ -42,6 +43,7 @@ export class AuditInterceptor implements NestInterceptor {
             ipAddress: ip,
             userAgent,
             result: 'success',
+            requestId,
           });
         }
       }),
@@ -57,6 +59,7 @@ export class AuditInterceptor implements NestInterceptor {
             ipAddress: ip,
             userAgent,
             result: 'failure',
+            requestId,
           });
         }
         throw error;

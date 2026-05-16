@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import axios from 'axios';
 import api from '../services/api';
 import type { User } from '../types';
 
@@ -25,10 +26,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       set({ user: data.user, isAuthenticated: true, isLoading: false });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+
       set({
         error:
-          err.response?.status === 401
+          status === 401
             ? 'Неправильний логін або пароль'
             : 'Помилка входу',
         isLoading: false,

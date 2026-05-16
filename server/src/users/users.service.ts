@@ -19,6 +19,10 @@ import { PaginatedDto } from '../common/dto/paginated.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -57,11 +61,17 @@ export class UsersService {
   }
 
   async findByLogin(login: string): Promise<User | null> {
-    return this.userModel.findOne({ login }).exec();
+    return this.userModel
+      .findOne({ login })
+      .select('+passwordHash +refreshTokenHashes')
+      .exec();
   }
 
   async findByIdWithPassword(id: string): Promise<User | null> {
-    return this.userModel.findById(id).exec();
+    return this.userModel
+      .findById(id)
+      .select('+passwordHash +refreshTokenHashes')
+      .exec();
   }
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
@@ -245,10 +255,21 @@ export class UsersService {
     return transformToPaginatedDto(UserDto, result);
   }
 
-  async findByName(query: string): Promise<UserDto[]> {
-    const q = new RegExp(query, 'i');
+  async findByName(query: string, role?: Role): Promise<UserDto[]> {
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) return [];
+
+    const q = new RegExp(escapeRegex(normalizedQuery.slice(0, 100)), 'i');
+    const filter: Record<string, unknown> = {
+      $or: [{ firstName: q }, { lastName: q }, { middleName: q }],
+    };
+
+    if (role) {
+      filter.role = role;
+    }
+
     const users = await this.userModel
-      .find({ $or: [{ firstName: q }, { lastName: q }, { middleName: q }] })
+      .find(filter)
       .select('-passwordHash')
       .lean()
       .exec();

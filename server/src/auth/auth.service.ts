@@ -4,7 +4,8 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
 import { UsersService } from '../users/users.service';
@@ -56,11 +57,28 @@ function getJwtVerifyFailureReason(err: unknown): string {
 
 @Injectable()
 export class AuthService {
+  private readonly accessTokenExpiresIn: NonNullable<
+    JwtSignOptions['expiresIn']
+  >;
+  private readonly refreshTokenExpiresIn: NonNullable<
+    JwtSignOptions['expiresIn']
+  >;
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
     private readonly auditLogService: AuditLogService,
-  ) {}
+    configService: ConfigService,
+  ) {
+    this.accessTokenExpiresIn =
+      configService.get<NonNullable<JwtSignOptions['expiresIn']>>(
+        'JWT_EXPIRES_IN',
+      ) ?? '15m';
+    this.refreshTokenExpiresIn =
+      configService.get<NonNullable<JwtSignOptions['expiresIn']>>(
+        'JWT_REFRESH_EXPIRES_IN',
+      ) ?? '7d';
+  }
 
   async login(
     login: string,
@@ -73,9 +91,9 @@ export class AuthService {
       login,
     )) as unknown as AuthUser | null;
 
-    if (!user || !(await bcrypt.compare(pass, user.passwordHash))) {
+    if (!user) {
       this.auditLogService.logAction({
-        userId: user?.id || null,
+        userId: null,
         userLogin: login,
         action: 'auth.login',
         ipAddress,
@@ -101,13 +119,31 @@ export class AuthService {
       throw new ForbiddenException('Обліковий запис заблоковано');
     }
 
+    if (!(await bcrypt.compare(pass, user.passwordHash))) {
+      this.auditLogService.logAction({
+        userId: user.id,
+        userLogin: login,
+        action: 'auth.login',
+        ipAddress,
+        userAgent,
+        result: 'failure',
+        details: { reason: 'Invalid credentials' },
+        requestId,
+      });
+      throw new UnauthorizedException('Невірний логін або пароль');
+    }
+
     const payload: ValidJwtPayload = {
       sub: user.id,
       login: user.login,
       role: user.role,
     };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: this.accessTokenExpiresIn,
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: this.refreshTokenExpiresIn,
+    });
 
     await this.usersService.addRefreshTokenHash(
       user.id,
@@ -236,10 +272,10 @@ export class AuthService {
       role: user.role,
     };
     const newAccessToken = this.jwtService.sign(newPayload, {
-      expiresIn: '15m',
+      expiresIn: this.accessTokenExpiresIn,
     });
     const newRefreshToken = this.jwtService.sign(newPayload, {
-      expiresIn: '7d',
+      expiresIn: this.refreshTokenExpiresIn,
     });
 
     await this.usersService.addRefreshTokenHash(

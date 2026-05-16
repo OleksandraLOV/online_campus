@@ -12,7 +12,6 @@ import {
   Get,
   Param,
   Res,
-  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -21,6 +20,16 @@ import { ApiConsumes, ApiBody, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { FilesService } from './files.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuditInterceptor } from '../audit-log/audit.interceptor';
+import { Role } from '../common/types/roles.enum';
+
+interface AuthenticatedFileRequest {
+  user: {
+    sub: string;
+    login: string;
+    role: Role;
+  };
+}
+
 @ApiTags('Files')
 @ApiBearerAuth()
 @Controller('files')
@@ -55,10 +64,11 @@ export class FilesController {
       }),
     )
     file: Express.Multer.File,
-    @Req() req: any,
+    @Req() req: AuthenticatedFileRequest,
   ) {
-    return this.filesService.saveFile(file, req.user.id);
+    return this.filesService.saveFile(file, req.user.sub);
   }
+
   @Get('download/:id')
   async downloadFile(@Param('id') id: string, @Res() res: Response) {
     const fileInfo = await this.filesService.getFileById(id);
@@ -86,8 +96,12 @@ export class FilesController {
       }
     });
   }
+
   @Delete(':id')
-  async removeFile(@Param('id') id: string) {
-    return this.filesService.deleteFile(id);
+  async removeFile(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedFileRequest,
+  ) {
+    return this.filesService.deleteFile(id, req.user.sub, req.user.role);
   }
 }
