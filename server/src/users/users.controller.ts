@@ -8,16 +8,17 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/roles.guard';
+import { UsersService } from './users.service';
 import { Role } from '../common/types/roles.enum';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PaginatedDto } from '../common/dto/paginated.dto';
 import { UserDto } from './dto/user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
+import { UserSearchQueryDto } from './dto/user-search-query.dto';
 import { ApiPaginatedResponse } from '../common/swagger/api-paginated.response';
 
 @ApiTags('users')
@@ -55,8 +56,8 @@ export class UsersController {
 
   @Get('search')
   @Roles(Role.ADMIN, Role.PRESIDENT, Role.RECTOR, Role.DEAN)
-  search(@Query('q') query: string) {
-    return this.usersService.findByName(query);
+  search(@Query() query: UserSearchQueryDto) {
+    return this.usersService.findByName(query.q ?? '', query.role);
   }
 
   @Get('group/:groupId')

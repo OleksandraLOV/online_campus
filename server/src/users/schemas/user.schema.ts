@@ -9,13 +9,13 @@ export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop({ type: [String], default: [] })
+  @Prop({ type: [String], default: [], select: false })
   refreshTokenHashes!: string[];
 
   @Prop({ required: true, unique: true })
   login: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, select: false })
   passwordHash: string;
 
   @Prop({ type: String, enum: Object.values(Role), required: true })

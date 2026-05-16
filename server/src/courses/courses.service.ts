@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   courses,
   courseAssignments,
@@ -8,7 +8,6 @@ import {
   submissions,
   grades,
   studentProfiles,
-  teacherProfiles,
   users,
 } from '../common/mock-data';
 

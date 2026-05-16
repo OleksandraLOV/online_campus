@@ -5,7 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import { useContainer } from 'class-validator';
-import { json, urlencoded } from 'express';
+import { json, urlencoded, Request, Response, NextFunction } from 'express';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
@@ -30,6 +30,18 @@ async function bootstrap() {
   );
 
   app.use(compression());
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.method === 'GET' && req.path === '/') {
+      res.status(200).json({
+        message: 'API is running',
+        swagger: '/api/docs',
+      });
+      return;
+    }
+
+    next();
+  });
 
   app.setGlobalPrefix('api');
 

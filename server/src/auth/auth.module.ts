@@ -16,7 +16,13 @@ import { AuditLogModule } from '../audit-log/audit-log.module';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService): JwtModuleOptions => ({
-        secret: config.get<string>('JWT_SECRET'),
+        secret: (() => {
+          const secret = config.get<string>('JWT_SECRET');
+          if (!secret) {
+            throw new Error('JWT_SECRET is not set');
+          }
+          return secret;
+        })(),
       }),
     }),
   ],

@@ -1,10 +1,10 @@
 import { Controller, Get, Param, UseGuards, Request } from '@nestjs/common';
-
 import { CoursesService } from './courses.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/roles.guard';
 import { Role } from '../common/types/roles.enum';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthenticatedRequest } from '../common/types/authenticated-request';
 
 @ApiTags('courses')
 @ApiBearerAuth()
@@ -19,7 +19,7 @@ export class CoursesController {
   }
 
   @Get('my')
-  findMy(@Request() req: any) {
+  findMy(@Request() req: AuthenticatedRequest) {
     const { sub, role } = req.user;
     if (role === Role.STUDENT) {
       return this.coursesService.findCoursesByStudent(sub);
@@ -47,12 +47,12 @@ export class CoursesController {
   }
 
   @Get('assignments/my')
-  getMyAssignments(@Request() req: any) {
+  getMyAssignments(@Request() req: AuthenticatedRequest) {
     return this.coursesService.findAssignmentsByStudent(req.user.sub);
   }
 
   @Get('grades/my')
-  getMyGrades(@Request() req: any) {
+  getMyGrades(@Request() req: AuthenticatedRequest) {
     return this.coursesService.findGradesByStudent(req.user.sub);
   }
 

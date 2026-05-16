@@ -3,8 +3,6 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScheduleModule } from './schedule/schedule.module';
@@ -26,22 +24,31 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
     ]),
     ConfigModule.forRoot({ isGlobal: true }),
 
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
-    }),
-
     MongooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        uri: `mongodb://${config.get<string>(
-          'MONGO_ROOT_USERNAME',
-        )}:${config.get<string>('MONGO_ROOT_PASSWORD')}@${config.get<string>(
-          'MONGO_HOST',
-        )}:${config.get<string>('MONGO_PORT')}/${config.get<string>(
-          'MONGO_DATABASE',
-        )}?authSource=admin`,
-      }),
+      useFactory: (config: ConfigService) => {
+        const isTest = config.get<string>('NODE_ENV') === 'test';
+
+        return {
+          uri: `mongodb://${config.get<string>(
+            'MONGO_ROOT_USERNAME',
+          )}:${config.get<string>('MONGO_ROOT_PASSWORD')}@${config.get<string>(
+            'MONGO_HOST',
+          )}:${config.get<string>('MONGO_PORT')}/${config.get<string>(
+            'MONGO_DATABASE',
+          )}?authSource=admin`,
+          retryAttempts: isTest
+            ? 0
+            : Number(config.get<string>('MONGO_RETRY_ATTEMPTS') ?? 3),
+          retryDelay: Number(
+            config.get<string>('MONGO_RETRY_DELAY_MS') ?? 1000,
+          ),
+          serverSelectionTimeoutMS: Number(
+            config.get<string>('MONGO_SERVER_SELECTION_TIMEOUT_MS') ??
+              (isTest ? 1000 : 5000),
+          ),
+        };
+      },
     }),
     AuthModule,
     UsersModule,

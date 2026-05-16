@@ -10,7 +10,6 @@ import {
   groups,
   classrooms,
   studentProfiles,
-  teacherProfiles,
 } from '../common/mock-data';
 import { ScheduleEntry } from '../common/types/entities';
 
