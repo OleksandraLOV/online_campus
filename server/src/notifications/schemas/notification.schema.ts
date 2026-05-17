@@ -19,6 +19,7 @@ export class Notification {
     enum: [
       'schedule_change',
       'new_assignment',
+      'new_survey',
       'grade',
       'announcement',
       'system',

@@ -3,18 +3,19 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuditLogModule } from './audit-log/audit-log.module';
+import { AuditInterceptor } from './audit-log/audit.interceptor';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { ExistsInDatabaseConstraint } from './common/validators/exists-in-database.validator';
+import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { CoursesModule } from './courses/courses.module';
 import { ReferencesModule } from './references/references.module';
 import { NotificationsModule } from './notifications/notifications.module';
-import { SeedModule } from './seed/seed.module';
-import { AuditLogModule } from './audit-log/audit-log.module';
-import { AuditInterceptor } from './audit-log/audit.interceptor';
-import { ExistsInDatabaseConstraint } from './common/validators/exists-in-database.validator';
 import { FilesModule } from './files/files.module';
-import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { SurveysModule } from './surveys/surveys.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
     SeedModule,
     AuditLogModule,
     FilesModule,
+    SurveysModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
