@@ -17,6 +17,15 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { FilesModule } from './files/files.module';
 import { SurveysModule } from './surveys/surveys.module';
 
+function readPositiveNumber(
+  config: ConfigService,
+  key: string,
+  fallback: number,
+): number {
+  const value = Number(config.get<string>(key));
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
 @Module({
   imports: [
     ThrottlerModule.forRoot([
@@ -30,9 +39,20 @@ import { SurveysModule } from './surveys/surveys.module';
       useFactory: (config: ConfigService) => {
         const isTest = config.get<string>('NODE_ENV') === 'test';
         const uri = config.get<string>('MONGODB_URI');
+        const connectionOptions = {
+          retryAttempts: isTest
+            ? 0
+            : readPositiveNumber(config, 'MONGO_RETRY_ATTEMPTS', 20),
+          retryDelay: readPositiveNumber(config, 'MONGO_RETRY_DELAY_MS', 3000),
+          serverSelectionTimeoutMS: readPositiveNumber(
+            config,
+            'MONGO_SERVER_SELECTION_TIMEOUT_MS',
+            isTest ? 1000 : 5000,
+          ),
+        };
 
         if (uri) {
-          return { uri };
+          return { uri, ...connectionOptions };
         }
 
         return {
@@ -43,16 +63,7 @@ import { SurveysModule } from './surveys/surveys.module';
           )}:${config.get<string>('MONGO_PORT')}/${config.get<string>(
             'MONGO_DATABASE',
           )}?authSource=admin`,
-          retryAttempts: isTest
-            ? 0
-            : Number(config.get<string>('MONGO_RETRY_ATTEMPTS') ?? 3),
-          retryDelay: Number(
-            config.get<string>('MONGO_RETRY_DELAY_MS') ?? 1000,
-          ),
-          serverSelectionTimeoutMS: Number(
-            config.get<string>('MONGO_SERVER_SELECTION_TIMEOUT_MS') ??
-              (isTest ? 1000 : 5000),
-          ),
+          ...connectionOptions,
         };
       },
     }),
