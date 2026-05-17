@@ -55,21 +55,27 @@ describe('Assignments (e2e)', () => {
   });
 
   afterEach(async () => {
-    await connection.collection('users').deleteMany({});
-    await connection.collection('courseassignments').deleteMany({});
-    await connection.collection('assignments').deleteMany({});
-    await connection.collection('submissions').deleteMany({});
-    await connection.collection('faculties').deleteMany({});
-    await connection.collection('departments').deleteMany({});
-    await connection.collection('groups').deleteMany({});
-    await connection.collection('specialties').deleteMany({});
-    await connection.collection('classrooms').deleteMany({});
-    await connection.collection('courses').deleteMany({});
-    await app.close();
+    if (connection) {
+      await connection.collection('users').deleteMany({});
+      await connection.collection('courseassignments').deleteMany({});
+      await connection.collection('assignments').deleteMany({});
+      await connection.collection('submissions').deleteMany({});
+      await connection.collection('faculties').deleteMany({});
+      await connection.collection('departments').deleteMany({});
+      await connection.collection('groups').deleteMany({});
+      await connection.collection('specialties').deleteMany({});
+      await connection.collection('classrooms').deleteMany({});
+      await connection.collection('courses').deleteMany({});
+    }
+    if (app) {
+      await app.close();
+    }
   });
 
   afterAll(async () => {
-    await container.stop();
+    if (container) {
+      await container.stop();
+    }
   });
 
   const setupAssignments = async () => {

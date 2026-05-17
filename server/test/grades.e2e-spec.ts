@@ -48,15 +48,21 @@ describe('Grades (e2e)', () => {
   });
 
   afterEach(async () => {
-    await connection.collection('users').deleteMany({});
-    await connection.collection('courses').deleteMany({});
-    await connection.collection('courseassignments').deleteMany({});
-    await connection.collection('grades').deleteMany({});
-    await app.close();
+    if (connection) {
+      await connection.collection('users').deleteMany({});
+      await connection.collection('courses').deleteMany({});
+      await connection.collection('courseassignments').deleteMany({});
+      await connection.collection('grades').deleteMany({});
+    }
+    if (app) {
+      await app.close();
+    }
   });
 
   afterAll(async () => {
-    await container.stop();
+    if (container) {
+      await container.stop();
+    }
   });
 
   const setupGrades = async () => {
