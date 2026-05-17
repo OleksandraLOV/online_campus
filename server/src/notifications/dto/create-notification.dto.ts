@@ -10,6 +10,7 @@ import {
 export enum NotificationType {
   SCHEDULE_CHANGE = 'schedule_change',
   NEW_ASSIGNMENT = 'new_assignment',
+  NEW_SURVEY = 'new_survey',
   GRADE = 'grade',
   ANNOUNCEMENT = 'announcement',
   SYSTEM = 'system',
