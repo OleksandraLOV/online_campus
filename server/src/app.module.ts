@@ -29,6 +29,11 @@ import { SurveysModule } from './surveys/surveys.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const isTest = config.get<string>('NODE_ENV') === 'test';
+        const uri = config.get<string>('MONGODB_URI');
+
+        if (uri) {
+          return { uri };
+        }
 
         return {
           uri: `mongodb://${config.get<string>(
