@@ -29,6 +29,11 @@ import {
 import { SubmissionDto } from '../submissions/dto';
 import { toId } from '../../common/utils/to-id.util';
 
+type SubmissionLookup = {
+  assignment: unknown;
+  student: unknown;
+} & Record<string, unknown>;
+
 @Injectable()
 export class AssignmentsService {
   constructor(
@@ -54,10 +59,10 @@ export class AssignmentsService {
       populate: ['files'],
       lean: true,
     };
-    const filter: Record<string, any> = {
+    const filter: Record<string, unknown> = {
       courseAssignment: new Types.ObjectId(courseAssignmentId),
     };
-    const result = await this.assignmentModel.paginate(filter as any, options);
+    const result = await this.assignmentModel.paginate(filter, options);
     const paginatedDto = transformToPaginatedDto(AssignmentDto, result);
 
     if (role === Role.STUDENT && userId) {
@@ -66,7 +71,7 @@ export class AssignmentsService {
         .find({
           student: new Types.ObjectId(userId),
           assignment: { $in: assignments.map((a) => a._id) },
-        } as any)
+        } as never)
         .populate('files')
         .lean()
         .exec();
@@ -125,7 +130,7 @@ export class AssignmentsService {
         .findOne({
           student: new Types.ObjectId(userId),
           assignment: new Types.ObjectId(id),
-        } as any)
+        } as never)
         .populate('files')
         .lean()
         .exec();
@@ -225,7 +230,8 @@ export class AssignmentsService {
     studentId: string,
     paginationDto: PaginationDto,
   ): Promise<PaginatedDto<AssignmentDto>> {
-    const { page, limit } = paginationDto;
+    const page = paginationDto.page ?? 1;
+    const limit = paginationDto.limit ?? 10;
     const user = (await this.userModel
       .findById(studentId)
       .select('studentProfile')
@@ -243,7 +249,7 @@ export class AssignmentsService {
         totalPages: 0,
         hasNextPage: false,
         hasPrevPage: false,
-      } as any);
+      });
     }
 
     const options = {
@@ -256,7 +262,7 @@ export class AssignmentsService {
 
     const result = await this.assignmentModel.paginate(
       { group: user.studentProfile.group },
-      options as any,
+      options as never,
     );
 
     const paginatedDto = transformToPaginatedDto(AssignmentDto, result);
@@ -266,11 +272,11 @@ export class AssignmentsService {
       .find({
         student: new Types.ObjectId(studentId),
         assignment: { $in: assignments.map((a) => a._id) },
-      } as any)
+      } as never)
       .populate('files')
       .lean()
-      .exec()) as any[];
-    const submissionMap = new Map<string, Submission>(
+      .exec()) as unknown as SubmissionLookup[];
+    const submissionMap = new Map<string, SubmissionLookup>(
       submissions.map((s) => [toId(s.assignment), s]),
     );
 

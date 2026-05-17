@@ -6,7 +6,7 @@ import { toId } from '../../../common/utils/to-id.util';
 export class GradeResponseDto {
   @ApiProperty()
   @Expose()
-  @Transform(({ obj }) => toId(obj._id))
+  @Transform(({ obj }: { obj: Grade }) => toId(obj._id))
   id: string;
 
   @ApiProperty()

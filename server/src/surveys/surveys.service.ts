@@ -10,7 +10,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { AuthenticatedUser } from '../common/types/authenticated-request';
 import { Role } from '../common/types/roles.enum';
-import { CoursesService } from '../courses/courses.service';
+import { CoursesService } from '../courses/courses/courses.service';
 import { NotificationType } from '../notifications/dto/create-notification.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { UserDto } from '../users/dto/user.dto';
@@ -249,7 +249,7 @@ export class SurveysService {
 
     const visibleSurveys: SurveyDocument[] = [];
     for (const survey of surveys) {
-      if (this.isSurveyTargetedToUser(survey, user, profile)) {
+      if (await this.isSurveyTargetedToUser(survey, user, profile)) {
         visibleSurveys.push(survey);
       }
     }
@@ -636,7 +636,7 @@ export class SurveysService {
     }
 
     const profile = await this.usersService.findOne(user.sub);
-    if (!this.isSurveyTargetedToUser(survey, user, profile)) {
+    if (!(await this.isSurveyTargetedToUser(survey, user, profile))) {
       throw new ForbiddenException(
         'Опитування недоступне для цього користувача',
       );
@@ -648,7 +648,7 @@ export class SurveysService {
     user: AuthenticatedUser,
   ): Promise<void> {
     const profile = await this.usersService.findOne(user.sub);
-    if (!this.isSurveyTargetedToUser(survey, user, profile)) {
+    if (!(await this.isSurveyTargetedToUser(survey, user, profile))) {
       throw new ForbiddenException(
         'Опитування недоступне для цього користувача',
       );
@@ -1068,11 +1068,11 @@ export class SurveysService {
     return normalized;
   }
 
-  private isSurveyTargetedToUser(
+  private async isSurveyTargetedToUser(
     survey: SurveyDocument,
     user: AuthenticatedUser,
     profile: UserDto,
-  ): boolean {
+  ): Promise<boolean> {
     if (survey.targetType === SurveyTargetType.ALL) {
       return user.role === Role.STUDENT || user.role === Role.TEACHER;
     }
@@ -1086,43 +1086,16 @@ export class SurveysService {
       );
     }
 
-    if (user.role === Role.STUDENT) {
-      return this.hasTargetedCourse(
-        this.coursesService.findCoursesByStudent(user.sub),
-        survey.targetIds,
-      );
+    if (user.role !== Role.STUDENT && user.role !== Role.TEACHER) {
+      return false;
     }
 
-    if (user.role === Role.TEACHER) {
-      return this.hasTargetedCourse(
-        this.coursesService.findCoursesByTeacher(user.sub),
-        survey.targetIds,
-      );
-    }
-
-    return false;
-  }
-
-  private hasTargetedCourse(
-    assignments: Record<string, unknown>[],
-    targetIds: string[],
-  ): boolean {
-    return assignments.some((assignment) => {
-      const assignmentId = this.readStringProperty(assignment, 'id');
-      const courseId = this.readStringProperty(assignment, 'courseId');
-      return (
-        (assignmentId !== null && targetIds.includes(assignmentId)) ||
-        (courseId !== null && targetIds.includes(courseId))
-      );
+    return this.coursesService.isUserAssignedToCourseTargets({
+      userId: user.sub,
+      role: user.role,
+      targetIds: survey.targetIds,
+      groupId: profile.studentProfile?.group,
     });
-  }
-
-  private readStringProperty(
-    source: Record<string, unknown>,
-    key: string,
-  ): string | null {
-    const value = source[key];
-    return typeof value === 'string' ? value : null;
   }
 
   private async closeExpiredSurveys(now = new Date()): Promise<void> {

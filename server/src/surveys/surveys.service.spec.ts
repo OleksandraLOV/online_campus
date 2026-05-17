@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { NotificationType } from '../notifications/dto/create-notification.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { Role } from '../common/types/roles.enum';
-import { CoursesService } from '../courses/courses.service';
+import { CoursesService } from '../courses/courses/courses.service';
 import { UsersService } from '../users/users.service';
 import { SurveyQuestionType, SurveyStatus, SurveyTargetType } from './schemas';
 import { SurveysService } from './surveys.service';
@@ -79,7 +79,7 @@ describe('SurveysService', () => {
   };
   let usersService: jest.Mocked<Pick<UsersService, 'findOne'>>;
   let coursesService: jest.Mocked<
-    Pick<CoursesService, 'findCoursesByStudent' | 'findCoursesByTeacher'>
+    Pick<CoursesService, 'isUserAssignedToCourseTargets'>
   >;
   let notificationsService: jest.Mocked<Pick<NotificationsService, 'create'>>;
 
@@ -126,8 +126,7 @@ describe('SurveysService', () => {
       }),
     };
     coursesService = {
-      findCoursesByStudent: jest.fn().mockReturnValue([]),
-      findCoursesByTeacher: jest.fn().mockReturnValue([]),
+      isUserAssignedToCourseTargets: jest.fn().mockResolvedValue(false),
     };
     notificationsService = {
       create: jest.fn(),

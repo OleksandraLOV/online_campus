@@ -259,7 +259,7 @@ export class GradesService {
       .find({
         courseAssignment: new Types.ObjectId(courseAssignmentId),
         student: { $in: studentIds },
-      } as any)
+      } as never)
       .populate({
         path: 'courseAssignment',
         populate: { path: 'course' },
