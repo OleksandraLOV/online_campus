@@ -57,6 +57,22 @@ export class CoursesService {
     });
   }
 
+  findUserIdsByCourseTargets(targetIds: string[]): string[] {
+    const targets = new Set(targetIds);
+    const targetedAssignments = courseAssignments.filter(
+      (ca) => targets.has(ca.id) || targets.has(ca.courseId),
+    );
+    const targetedGroupIds = new Set(
+      targetedAssignments.map((ca) => ca.groupId),
+    );
+    const teacherIds = targetedAssignments.map((ca) => ca.teacherId);
+    const studentIds = studentProfiles
+      .filter((profile) => targetedGroupIds.has(profile.groupId))
+      .map((profile) => profile.userId);
+
+    return [...new Set([...teacherIds, ...studentIds])];
+  }
+
   // ============ MATERIALS ============
 
   findMaterials(courseAssignmentId: string) {
