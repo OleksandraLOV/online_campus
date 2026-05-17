@@ -1,7 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UsersService } from '../users/users.service';
 
 interface JwtPayload {
   sub: string;
@@ -24,7 +29,10 @@ function isJwtPayload(payload: unknown): payload is JwtPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(config: ConfigService) {
+  constructor(
+    config: ConfigService,
+    private readonly usersService: UsersService,
+  ) {
     const secret = config.get<string>('JWT_SECRET');
 
     if (!secret) {
@@ -38,11 +46,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: unknown) {
+  async validate(payload: unknown) {
     if (!isJwtPayload(payload)) {
       throw new UnauthorizedException('Invalid token payload');
     }
 
-    return { sub: payload.sub, login: payload.login, role: payload.role };
+    const user = await this.usersService.findAuthIdentityById(payload.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('Користувача не знайдено');
+    }
+
+    if (user.status === 'blocked') {
+      throw new ForbiddenException('Обліковий запис заблоковано');
+    }
+
+    return { sub: user.id, login: user.login, role: user.role };
   }
 }

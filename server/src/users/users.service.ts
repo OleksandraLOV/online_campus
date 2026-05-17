@@ -18,6 +18,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedDto } from '../common/dto/paginated.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { toId } from '../common/utils/to-id.util';
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -72,6 +73,30 @@ export class UsersService {
       .findById(id)
       .select('+passwordHash +refreshTokenHashes')
       .exec();
+  }
+
+  async findAuthIdentityById(id: string): Promise<{
+    id: string;
+    login: string;
+    role: Role;
+    status: string;
+  } | null> {
+    const user = await this.userModel
+      .findById(id)
+      .select('login role status')
+      .lean()
+      .exec();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: toId(user._id),
+      login: user.login,
+      role: user.role,
+      status: user.status,
+    };
   }
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {

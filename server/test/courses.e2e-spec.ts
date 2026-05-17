@@ -46,15 +46,21 @@ describe('Courses (e2e)', () => {
   });
 
   afterEach(async () => {
-    await connection.collection('users').deleteMany({});
-    await connection.collection('courses').deleteMany({});
-    await connection.collection('courseassignments').deleteMany({});
-    await connection.collection('departments').deleteMany({});
-    await app.close();
+    if (connection) {
+      await connection.collection('users').deleteMany({});
+      await connection.collection('courses').deleteMany({});
+      await connection.collection('courseassignments').deleteMany({});
+      await connection.collection('departments').deleteMany({});
+    }
+    if (app) {
+      await app.close();
+    }
   });
 
   afterAll(async () => {
-    await container.stop();
+    if (container) {
+      await container.stop();
+    }
   });
 
   const setupData = async () => {

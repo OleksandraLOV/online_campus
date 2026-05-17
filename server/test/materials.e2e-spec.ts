@@ -47,13 +47,19 @@ describe('Materials (e2e)', () => {
   });
 
   afterEach(async () => {
-    await connection.collection('courseassignments').deleteMany({});
-    await connection.collection('materials').deleteMany({});
-    await app.close();
+    if (connection) {
+      await connection.collection('courseassignments').deleteMany({});
+      await connection.collection('materials').deleteMany({});
+    }
+    if (app) {
+      await app.close();
+    }
   });
 
   afterAll(async () => {
-    await container.stop();
+    if (container) {
+      await container.stop();
+    }
   });
 
   const setupMaterials = async () => {
