@@ -2,6 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '../../common/types/roles.enum';
 import { Expose, Transform, Type } from 'class-transformer';
 import { User } from '../schemas';
+import { toId } from '../../common/utils/to-id.util';
+
+type MinimalUserLike = {
+  _id?: unknown;
+  id?: unknown;
+};
 
 function referenceToString(value: unknown): string | null {
   if (value === null || value === undefined) {
@@ -133,14 +139,14 @@ export class UserDto {
 
   @ApiProperty()
   @Expose()
-  @Transform(({ value }) =>
+  @Transform(({ value }: { value?: Date | string }) =>
     value instanceof Date ? value.toISOString() : value,
   )
   createdAt: string;
 
   @ApiProperty()
   @Expose()
-  @Transform(({ value }) =>
+  @Transform(({ value }: { value?: Date | string }) =>
     value instanceof Date ? value.toISOString() : value,
   )
   updatedAt: string;
@@ -149,7 +155,7 @@ export class UserDto {
 export class UserMinimalDto {
   @ApiProperty()
   @Expose()
-  @Transform(({ obj }) => obj._id?.toString() || obj.id)
+  @Transform(({ obj }: { obj: MinimalUserLike }) => toId(obj._id ?? obj.id))
   id: string;
 
   @ApiProperty()

@@ -8,6 +8,7 @@ import { Model, Types, PaginateModel } from 'mongoose';
 
 import { CourseAssignmentDto, CourseDto } from './dto';
 import { Role } from '../../common/types/roles.enum';
+import { toId } from '../../common/utils/to-id.util';
 import { User, UserDocument } from '../../users/schemas';
 import {
   Course,
@@ -15,9 +16,7 @@ import {
   CourseAssignmentDocument,
   CourseDocument,
 } from '../schemas';
-import {
-  transformToPaginatedDto,
-} from '../../common/utils/transform.util';
+import { transformToPaginatedDto } from '../../common/utils/transform.util';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { PaginatedDto } from '../../common/dto/paginated.dto';
 
@@ -25,7 +24,8 @@ import { PaginatedDto } from '../../common/dto/paginated.dto';
 export class CoursesService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Course.name) private courseModel: PaginateModel<CourseDocument>,
+    @InjectModel(Course.name)
+    private courseModel: PaginateModel<CourseDocument>,
     @InjectModel(CourseAssignment.name)
     private courseAssignmentModel: PaginateModel<CourseAssignmentDocument>,
   ) {}
@@ -43,7 +43,7 @@ export class CoursesService {
       throw new NotFoundException('Призначення курсу не знайдено');
     }
 
-    if (role !== Role.ADMIN && String(ca.teacher as any) !== userId) {
+    if (role !== Role.ADMIN && toId(ca.teacher) !== userId) {
       throw new ForbiddenException('Ви не є викладачем цього курсу');
     }
 
@@ -146,5 +146,100 @@ export class CoursesService {
     );
 
     return transformToPaginatedDto(CourseAssignmentDto, result);
+  }
+
+  async isUserAssignedToCourseTargets(params: {
+    userId: string;
+    role: Role;
+    targetIds: string[];
+    groupId?: string | null;
+  }): Promise<boolean> {
+    const objectIds = params.targetIds
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+
+    if (objectIds.length === 0) {
+      return false;
+    }
+
+    const targetFilter: Record<string, unknown> = {
+      $or: [{ _id: { $in: objectIds } }, { course: { $in: objectIds } }],
+    };
+
+    if (params.role === Role.TEACHER) {
+      if (!Types.ObjectId.isValid(params.userId)) {
+        return false;
+      }
+
+      const match = await this.courseAssignmentModel
+        .exists({
+          ...targetFilter,
+          teacher: new Types.ObjectId(params.userId),
+        } as never)
+        .exec();
+
+      return match !== null;
+    }
+
+    if (params.role === Role.STUDENT) {
+      if (!params.groupId || !Types.ObjectId.isValid(params.groupId)) {
+        return false;
+      }
+
+      const match = await this.courseAssignmentModel
+        .exists({
+          ...targetFilter,
+          group: new Types.ObjectId(params.groupId),
+        } as never)
+        .exec();
+
+      return match !== null;
+    }
+
+    return false;
+  }
+
+  async findUserIdsByCourseTargets(targetIds: string[]): Promise<string[]> {
+    const objectIds = targetIds
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+
+    if (objectIds.length === 0) {
+      return [];
+    }
+
+    const assignmentFilter: Record<string, unknown> = {
+      $or: [{ _id: { $in: objectIds } }, { course: { $in: objectIds } }],
+    };
+    const courseAssignments = await this.courseAssignmentModel
+      .find(assignmentFilter as never)
+      .select('teacher group')
+      .lean()
+      .exec();
+
+    const teacherIds = courseAssignments.map((assignment) =>
+      toId(assignment.teacher),
+    );
+    const groupIds = [
+      ...new Set(courseAssignments.map((assignment) => toId(assignment.group))),
+    ]
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+
+    if (groupIds.length === 0) {
+      return [...new Set(teacherIds)];
+    }
+
+    const studentFilter: Record<string, unknown> = {
+      'studentProfile.group': { $in: groupIds },
+    };
+    const students = await this.userModel
+      .find(studentFilter as never)
+      .select('_id')
+      .lean()
+      .exec();
+    const studentIds = students.map((student) => toId(student._id));
+
+    return [...new Set([...teacherIds, ...studentIds])];
   }
 }
