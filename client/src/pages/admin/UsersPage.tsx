@@ -193,6 +193,7 @@ export default function UsersPage() {
       </div>
 
       <CreateUserModal
+        key={`${isCreateModalOpen ? 'open' : 'closed'}-${editingUser?.id ?? 'create'}`}
         isOpen={isCreateModalOpen}
         userToEdit={editingUser}
         onClose={() => {
