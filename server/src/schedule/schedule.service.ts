@@ -82,6 +82,13 @@ export class ScheduleService {
     return { deleted: true };
   }
 
+  isClassroomUsed(classroomId: string): boolean {
+    return this.entries.some(
+      (entry) =>
+        entry.classroomId === classroomId && entry.status !== 'cancelled',
+    );
+  }
+
   private checkConflicts(dto: Omit<ScheduleEntry, 'id'>) {
     const conflicts: string[] = [];
     const ca = courseAssignments.find((c) => c.id === dto.courseAssignmentId);
