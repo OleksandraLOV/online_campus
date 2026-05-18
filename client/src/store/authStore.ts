@@ -30,27 +30,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-
-      set({
-        user: data.user,
-        isAuthenticated: true,
-        isLoading: false,
-        isAuthChecked: true,
-      });
+      set({ user: data.user, isAuthenticated: true, isLoading: false });
     } catch (err: unknown) {
-      let message = 'Помилка входу';
-
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        message = 'Неправильний логін або пароль';
-      }
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
 
       set({
-        error: message,
+        error:
+          status === 401
+            ? 'Неправильний логін або пароль'
+            : 'Помилка входу',
         isLoading: false,
         isAuthChecked: true,
       });
-
-      throw err;
     }
   },
 

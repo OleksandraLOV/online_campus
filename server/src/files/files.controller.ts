@@ -1,11 +1,35 @@
-import { Controller, Post, Delete,UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req,Get, Param, Res, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  UseGuards,
+  Req,
+  Get,
+  Param,
+  Res,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as path from 'path';
 import { ApiConsumes, ApiBody, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { FilesService } from './files.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'; 
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuditInterceptor } from '../audit-log/audit.interceptor';
+import { Role } from '../common/types/roles.enum';
+
+interface AuthenticatedFileRequest {
+  user: {
+    sub: string;
+    login: string;
+    role: Role;
+  };
+}
+
 @ApiTags('Files')
 @ApiBearerAuth()
 @Controller('files')
@@ -33,27 +57,36 @@ export class FilesController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg|pdf|doc|docx|zip)' }),
+          new FileTypeValidator({
+            fileType: '.(png|jpeg|jpg|pdf|doc|docx|zip)',
+          }),
         ],
       }),
     )
     file: Express.Multer.File,
-    @Req() req: any,
+    @Req() req: AuthenticatedFileRequest,
   ) {
-    return this.filesService.saveFile(file, req.user.id); 
+    return this.filesService.saveFile(file, req.user.sub);
   }
-@Get('download/:id')
-  async downloadFile(
-    @Param('id') id: string, 
-    @Res() res: Response
-  ) {
+
+  @Get('download/:id')
+  async downloadFile(@Param('id') id: string, @Res() res: Response) {
     const fileInfo = await this.filesService.getFileById(id);
-    
-    const filePath = path.join(__dirname, '..', '..', 'uploads', fileInfo.storagePath);
+
+    const filePath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'uploads',
+      fileInfo.storagePath,
+    );
 
     const encodedFileName = encodeURIComponent(fileInfo.originalName);
 
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedFileName}`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename*=UTF-8''${encodedFileName}`,
+    );
 
     return res.sendFile(filePath, (err) => {
       if (err) {
@@ -63,9 +96,12 @@ export class FilesController {
       }
     });
   }
+
   @Delete(':id')
-    async removeFile(@Param('id') id: string) {
-      return this.filesService.deleteFile(id);
+  async removeFile(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedFileRequest,
+  ) {
+    return this.filesService.deleteFile(id, req.user.sub, req.user.role);
   }
 }
-

@@ -3,8 +3,6 @@ services:
     build: ./server
     restart: unless-stopped
     volumes:
-      - ./server:/app
-      - /app/node_modules
       - ./server/uploads:/app/uploads
     ports:
       - '${PORT:-3000}:3000'
@@ -43,10 +41,10 @@ services:
     volumes:
       - ./data/db:/data/db
     healthcheck:
-      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ['CMD-SHELL', 'mongosh --quiet --host localhost --port 27017 -u "$$MONGO_INITDB_ROOT_USERNAME" -p "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "db.adminCommand({ ping: 1 }).ok" | grep 1']
+      interval: 5s
+      timeout: 10s
+      retries: 12
       start_period: 30s
     networks:
       - campus

@@ -1,9 +1,33 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { UsersService } from './users.service';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/roles.guard';
+import { UsersService } from './users.service';
 import { Role } from '../common/types/roles.enum';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthenticatedRequest } from '../common/types/authenticated-request';
+import { PaginatedDto } from '../common/dto/paginated.dto';
+import { UserDto } from './dto/user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangeUserRoleDto } from './dto/change-user-role.dto';
+import { UserQueryDto } from './dto/user-query.dto';
+import { UserSearchQueryDto } from './dto/user-search-query.dto';
+import { ApiPaginatedResponse } from '../common/swagger/api-paginated.response';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -12,16 +36,55 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  @Post()
+  @Roles(Role.ADMIN)
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADMIN)
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.usersService.update(id, updateUserDto, req.user.sub);
+  }
+
+  @Patch(':id/role')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Change user role' })
+  @ApiResponse({ status: 200, type: UserDto })
+  @ApiResponse({ status: 400, description: 'Invalid role transition payload' })
+  @ApiResponse({ status: 403, description: 'Cannot change own role' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  changeRole(
+    @Param('id') id: string,
+    @Body() changeUserRoleDto: ChangeUserRoleDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.usersService.changeRole(id, changeUserRoleDto, req.user.sub);
+  }
+
+  @Patch(':id/block')
+  @Roles(Role.ADMIN)
+  toggleBlock(@Param('id') id: string) {
+    return this.usersService.toggleBlock(id);
+  }
+
   @Get()
   @Roles(Role.ADMIN, Role.RECTOR, Role.PRESIDENT)
-  findAll(@Query('role') role?: Role) {
-    return this.usersService.findAll(role);
+  @ApiPaginatedResponse(UserDto)
+  findAll(@Query() query: UserQueryDto): Promise<PaginatedDto<UserDto>> {
+    const { role, ...paginationDto } = query;
+    return this.usersService.findAll(paginationDto, role);
   }
 
   @Get('search')
   @Roles(Role.ADMIN, Role.PRESIDENT, Role.RECTOR, Role.DEAN)
-  search(@Query('q') query: string) {
-    return this.usersService.findByName(query);
+  search(@Query() query: UserSearchQueryDto) {
+    return this.usersService.findByName(query.q ?? '', query.role);
   }
 
   @Get('group/:groupId')

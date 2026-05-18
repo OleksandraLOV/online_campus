@@ -149,6 +149,10 @@ const resources = {
 
       'status.active': 'Активний',
       'status.blocked': 'Заблокований',
+      'users.actions': 'Дії',
+      'users.addUser': '+ Додати користувача',
+      'users.block': 'Заблокувати',
+      'users.unblock': 'Розблокувати',
     },
   },
   en: {
@@ -296,6 +300,10 @@ const resources = {
 
       'status.active': 'Active',
       'status.blocked': 'Blocked',
+      'users.actions': 'Actions',
+      'users.addUser': '+ Add user',
+      'users.block': 'Block',
+      'users.unblock': 'Unblock',
     },
   },
 };

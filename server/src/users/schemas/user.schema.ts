@@ -1,15 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as paginate from 'mongoose-paginate-v2';
 import { Role } from '../../common/types/roles.enum';
 import { StudentProfile, StudentProfileSchema } from './student-profile.schema';
 import { TeacherProfile, TeacherProfileSchema } from './teacher-profile.schema';
 
+export type UserDocument = User & Document;
+
 @Schema({ timestamps: true })
 export class User extends Document {
+  @Prop({ type: [String], default: [], select: false })
+  refreshTokenHashes!: string[];
+
   @Prop({ required: true, unique: true })
   login: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, select: false })
   passwordHash: string;
 
   @Prop({ type: String, enum: Object.values(Role), required: true })
@@ -52,3 +58,5 @@ export class User extends Document {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.plugin(paginate);
