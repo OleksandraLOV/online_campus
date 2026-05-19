@@ -29,6 +29,22 @@ export class NotificationsService {
     });
   }
 
+  async createMany(items: CreateNotificationDto[]) {
+    if (items.length === 0) {
+      return [];
+    }
+
+    return this.notificationModel.insertMany(
+      items.map((data) => ({
+        title: data.title,
+        message: data.message,
+        type: data.type,
+        userId: data.userId ? new Types.ObjectId(data.userId) : null,
+      })),
+      { ordered: false },
+    );
+  }
+
   async findByUser(userId: string) {
     const userObjId = this.toObjectId(userId);
 
