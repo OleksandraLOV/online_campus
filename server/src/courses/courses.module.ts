@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Injectable, Inject, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CoursesController } from './courses/courses.controller';
 import { CoursesService } from './courses/courses.service';
@@ -10,6 +10,7 @@ import { SubmissionsController } from './submissions/submissions.controller';
 import { SubmissionsService } from './submissions/submissions.service';
 import { GradesController } from './grades/grades.controller';
 import { GradesService } from './grades/grades.service';
+import { FilesModule } from '../files/files.module';
 import { User, UserSchema } from '../users/schemas';
 import {
   Course,
@@ -26,8 +27,10 @@ import {
   GradeSchema,
 } from './schemas';
 
+
 @Module({
   imports: [
+    FilesModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Course.name, schema: CourseSchema },

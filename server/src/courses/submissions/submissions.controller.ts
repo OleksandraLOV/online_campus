@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -45,5 +46,22 @@ export class SubmissionsController {
     @Request() req: RequestWithUser,
   ): Promise<SubmissionDto> {
     return this.submissionsService.submitAssignment(id, dto, req.user.sub);
+  }
+
+  @Delete('assignments/:assignmentId/submissions/:studentId')
+  @Roles(Role.TEACHER, Role.DEPARTMENT_HEAD, Role.ADMIN)
+  async removeSubmission(
+    @Param('assignmentId') assignmentId: string,
+    @Param('studentId') studentId: string,
+  ): Promise<{ success: boolean }> {
+    return this.submissionsService.removeSubmission(assignmentId, studentId);
+  }
+  @Delete('assignments/:id/submit')
+  @Roles(Role.STUDENT)
+  async deleteOwnSubmission(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    return this.submissionsService.removeSubmission(id, req.user.sub);
   }
 }

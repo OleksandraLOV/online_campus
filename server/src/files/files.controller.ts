@@ -1,18 +1,4 @@
-import {
-  Controller,
-  Post,
-  Delete,
-  UseInterceptors,
-  UploadedFile,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
-  UseGuards,
-  Req,
-  Get,
-  Param,
-  Res,
-} from '@nestjs/common';
+import {Controller,Post,Delete,UseInterceptors,UploadedFile,ParseFilePipe,MaxFileSizeValidator,FileTypeValidator,UseGuards,Req,Get,Param,Res,NotFoundException,}from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as path from 'path';
@@ -58,7 +44,7 @@ export class FilesController {
         validators: [
           new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }),
           new FileTypeValidator({
-            fileType: '.(png|jpeg|jpg|pdf|doc|docx|zip)',
+            fileType: /(jpg|jpeg|png|pdf|msword|document|zip)/,
           }),
         ],
       }),

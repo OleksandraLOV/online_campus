@@ -111,7 +111,7 @@ export interface FileDto {
 export interface Material {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   files: FileDto[];
   publishDate: string;
 }
@@ -134,6 +134,8 @@ export interface Assignment {
     status: string;
     score?: number;
     comment?: string;
+    fileLink: string;
+    originalName: string;
   } | null;
 }
 
@@ -170,4 +172,26 @@ export interface Notification {
   message: string;
   createdAt: string;
   readFlag: boolean;
+}
+
+export interface Material {
+  id: string;
+  courseAssignmentId: string;
+  title: string;
+  description?: string;
+  fileLink: string;
+  originalName: string;
+  publishDate: string;
+}
+
+export interface Submission {
+  id: string;
+  assignmentId: string;
+  studentId: string;
+  submittedAt: string;
+  fileLink: string;
+  originalName: string;
+  score?: number;
+  comment?: string;
+  status: 'submitted' | 'graded' | 'returned';
 }
