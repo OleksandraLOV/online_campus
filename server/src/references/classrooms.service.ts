@@ -72,7 +72,7 @@ export class ClassroomsService {
       throwReferenceNotFound('Classroom', id);
     }
 
-    this.referenceIntegrityService.assertClassroomCanBeDeleted(objectId);
+    await this.referenceIntegrityService.assertClassroomCanBeDeleted(objectId);
 
     const result = await this.classroomModel
       .deleteOne({ _id: objectId })

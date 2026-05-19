@@ -104,11 +104,13 @@ export class ReferenceIntegrityService {
     ]);
   }
 
-  assertClassroomCanBeDeleted(id: Types.ObjectId): void {
+  async assertClassroomCanBeDeleted(id: Types.ObjectId): Promise<void> {
     throwReferenceInUse('classroom', [
       {
         resource: 'scheduleEntries',
-        count: this.scheduleService.isClassroomUsed(id.toHexString()) ? 1 : 0,
+        count: (await this.scheduleService.isClassroomUsed(id.toHexString()))
+          ? 1
+          : 0,
       },
     ]);
   }

@@ -44,7 +44,7 @@ function createService(
   const scheduleService: ScheduleServiceMock = {
     isClassroomUsed: jest
       .fn()
-      .mockReturnValue(overrides.classroomUsed ?? false),
+      .mockResolvedValue(overrides.classroomUsed ?? false),
   };
 
   const service = new ReferenceIntegrityService(
@@ -111,10 +111,10 @@ describe('ReferenceIntegrityService', () => {
     );
   });
 
-  it('blocks deleting classrooms used by active schedule entries', () => {
+  it('blocks deleting classrooms used by active schedule entries', async () => {
     const { service, scheduleService } = createService({ classroomUsed: true });
 
-    expect(() => service.assertClassroomCanBeDeleted(id)).toThrow(
+    await expect(service.assertClassroomCanBeDeleted(id)).rejects.toThrow(
       ConflictException,
     );
     expect(scheduleService.isClassroomUsed).toHaveBeenCalledWith(

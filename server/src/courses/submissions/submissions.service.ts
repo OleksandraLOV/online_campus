@@ -61,7 +61,7 @@ export class SubmissionsService {
     if (!assignment) {
       throw new NotFoundException('Завдання не знайдено');
     }
-
+    // блокує завантаження після дедлайну, розкоментувати за потребою.
     // if (new Date() > assignment.dueDate) {
     //   throw new BadRequestException('Термін здачі завдання минув');
     // }

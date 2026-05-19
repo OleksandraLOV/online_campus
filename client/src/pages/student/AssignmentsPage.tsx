@@ -97,8 +97,8 @@ const handleDelete = async (fileId: string | undefined, assignmentId: string) =>
         <div className="space-y-4">
           {assignments.map((a) => {
             const status = getStatusBadge(a);
-            //const isOverdue = new Date(a.dueDate) < new Date();
-            const isOverdue = false;
+            //const isOverdue = new Date(a.dueDate) < new Date(); // блокує завантаження файлу після дедлайну
+            const isOverdue = false; // залишає можливість завантажувати файл після дедлайну
             const submissionAny = a.submission as any; 
             const file = submissionAny?.files && submissionAny.files.length > 0 ? submissionAny.files[0] : null;
             const fileId = file ? (file.id || file._id) : undefined;

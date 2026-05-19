@@ -62,7 +62,6 @@ export class SubmissionsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    // Берем id лабораторной из URL, а id студента — из безопасного запроса (req.user.sub)
     return this.submissionsService.removeSubmission(id, req.user.sub);
   }
 }
