@@ -98,6 +98,8 @@ export interface Assignment {
     score?: number;
     comment?: string;
     submittedAt: string;
+    fileLink: string;
+    originalName: string;
   } | null;
 }
 

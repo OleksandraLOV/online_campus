@@ -67,12 +67,13 @@ export class CoursesService {
   async saveMaterial(caId: string, title: string, file: Express.Multer.File, teacherId: string) {
   const savedFile = await this.filesService.saveFile(file, teacherId);
 
+  const decodedName = Buffer.from(file.originalname, 'latin1').toString('utf8');
   const newMaterial = {
     id: Math.random().toString(36).substring(2, 9),
     courseAssignmentId: caId,
     title,
-    fileLink: savedFile.fileLink,
-    originalName: file.originalname,
+    fileLink: savedFile.fileId.toString(),
+    originalName: decodedName,
     publishDate: new Date().toISOString(),
   };
 
@@ -130,13 +131,14 @@ export class CoursesService {
   async submitAssignment(assignmentId: string, studentId: string, file: Express.Multer.File) {
     const savedFile = await this.filesService.saveFile(file, studentId);
 
+    const decodedName = Buffer.from(file.originalname, 'latin1').toString('utf8');
     const newSubmission = {
       id: Math.random().toString(36).substring(2, 9),
       assignmentId,
       studentId,
       submittedAt: new Date().toISOString(),
-      fileLink: savedFile.fileLink,
-      originalName: file.originalname,
+      fileLink: savedFile.fileId.toString(),
+      originalName: decodedName,
       status: 'submitted' as const,
     };
 

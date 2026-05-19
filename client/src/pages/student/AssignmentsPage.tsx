@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '../../services/api';
 import type { Assignment } from '../../types';
 import { useTranslation } from 'react-i18next';
-import { FileUploader } from '../components/FileUploader';
-import { filesApi } from '../services/api';
+import { FileUploader } from '../../components/FileUploader';
+import { filesApi } from '../../services/api';
 
 export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -41,7 +41,41 @@ export default function AssignmentsPage() {
 
     return { label: t('assignments.statusPending'), color: 'bg-blue-100 text-blue-700' };
   };
+  const handleDownload = async (fileId: string, originalName: string) => {
+    try {
 
+      const response = await api.get(`/files/download/${fileId}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', originalName); 
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Помилка завантаження файлу:', error);
+      alert('Не вдалося завантажити файл. Можливо, його було видалено.');
+    }
+  };
+const handleDelete = async (fileId: string, assignmentId: string) => {
+  if (!window.confirm('Ви впевнені, що хочете видалити цю роботу?')) return;
+  
+  try {
+    await api.delete(`/files/${fileId}`);
+    setAssignments((prev) => 
+      prev.map((a) => 
+        a.id === assignmentId ? { ...a, submission: null } : a
+      )
+    );
+    alert('Роботу успішно видалено!');
+  } catch (error) {
+    console.error('Помилка видалення:', error);
+    alert('Не вдалося видалити файл.');
+  }
+};
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">
@@ -56,7 +90,6 @@ export default function AssignmentsPage() {
             const status = getStatusBadge(a);
             return (
               <div key={a.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                {/* Верхня частина: Назва та Статус */}
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="font-semibold text-gray-900">{a.title}</h3>
@@ -67,12 +100,28 @@ export default function AssignmentsPage() {
                     {status.label}
                   </span>
                 </div>
-
-                {/* Блок завантаження: показуємо тільки якщо немає здачі */}
-                {!a.submission && (
+                  {a.submission ? (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <p className="text-sm text-gray-500 mb-3">Ваша завантажена робота:</p>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => handleDownload(a.submission!.fileLink, a.submission!.originalName)}
+                          className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          {a.submission!.originalName || 'Завантажений файл'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(a.submission!.fileLink, a.id)}
+                          className="inline-flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <p className="text-sm font-medium text-gray-700 mb-3">
-                      {t('assignments.submitWork')}
+                      Прикріпити файл роботи
                     </p>
                     <FileUploader 
                       allowedTypes={['.pdf', '.doc', '.docx', '.zip']} 
