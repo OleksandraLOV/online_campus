@@ -23,6 +23,7 @@ import {
   ClassroomSeeder,
   CourseSeeder,
   CourseAssignmentSeeder,
+  ScheduleEntrySeeder,
   GradeSeeder,
   AssignmentSeeder,
   MaterialSeeder,
@@ -39,6 +40,7 @@ import {
   Material,
   MaterialSchema,
 } from '../courses/schemas';
+import { ScheduleEntry, ScheduleEntrySchema } from '../schedule/schemas';
 
 @Module({
   imports: [
@@ -51,6 +53,7 @@ import {
       { name: Classroom.name, schema: ClassroomSchema },
       { name: Course.name, schema: CourseSchema },
       { name: CourseAssignment.name, schema: CourseAssignmentSchema },
+      { name: ScheduleEntry.name, schema: ScheduleEntrySchema },
       { name: Grade.name, schema: GradeSchema },
       { name: Assignment.name, schema: AssignmentSchema },
       { name: Material.name, schema: MaterialSchema },
@@ -66,6 +69,7 @@ import {
     ClassroomSeeder,
     CourseSeeder,
     CourseAssignmentSeeder,
+    ScheduleEntrySeeder,
     GradeSeeder,
     AssignmentSeeder,
     MaterialSeeder,

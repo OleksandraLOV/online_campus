@@ -6,6 +6,7 @@ export * from './specialty.seeder';
 export * from './classroom.seeder';
 export * from './course.seeder';
 export * from './course-assignment.seeder';
+export * from './schedule-entry.seeder';
 export * from './grade.seeder';
 export * from './assignment.seeder';
 export * from './material.seeder';
