@@ -1,12 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { filesApi } from '../../services/api';
-import type { CourseAssignment, Material } from '../../types';
+import type { CourseAssignment, Material, PaginatedResponse  } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { FileUploader } from '../../components/FileUploader';
 import {useAuthStore} from '../../store/authStore';
 
-
+  const formatTeacherName = (ca: CourseAssignment) => {
+    if (ca.teacherName) return ca.teacherName;
+    if (ca.teacher) {
+      const { lastName, firstName, middleName } = ca.teacher;
+      return [lastName, firstName, middleName].filter(Boolean).join(' ');
+    }
+    return '';
+  };
+  
 function CourseCard({ ca, role, t }: { ca: CourseAssignment; role?: string; t: any }) {
   const [title, setTitle] = useState('');
 
@@ -14,7 +23,7 @@ function CourseCard({ ca, role, t }: { ca: CourseAssignment; role?: string; t: a
   const isTeacher = role === 'teacher' || role === 'department_head' || role === 'admin';
   useEffect(() => {
     api.get(`/courses/${ca.id}/materials`)
-       .then(({ data }) => setMaterials(data))
+       .then(({ data }) => setMaterials(data.docs || data))
        .catch(() => {});
   }, [ca.id]);
 
@@ -26,7 +35,7 @@ function CourseCard({ ca, role, t }: { ca: CourseAssignment; role?: string; t: a
     await filesApi.uploadMaterial(ca.id, title, file);
     setTitle('');
     
-    api.get(`/courses/${ca.id}/materials`).then(({ data }) => setMaterials(data));
+    api.get(`/courses/${ca.id}/materials`).then(({ data }) => setMaterials(data.docs || data));
   };
   const handleDownload = async (fileId: string, originalName: string) => {
     try {
@@ -47,18 +56,24 @@ function CourseCard({ ca, role, t }: { ca: CourseAssignment; role?: string; t: a
       alert('Не вдалося завантажити файл. Можливо, його було видалено.');
     }
   };
-  const handleDeleteMaterial = async (fileId: string, materialId: string) => {
-  if (!window.confirm('Ви впевнені, що хочете видалити цей матеріал?')) return;
-  
-  try {
-    await api.delete(`/files/${fileId}`);
+const handleDeleteMaterial = async (fileId: string | undefined, materialId: string) => {
+    if (!window.confirm('Ви впевнені, що хочете видалити цей матеріал?')) return;
     
-    setMaterials((prev) => prev.filter((m) => m.id !== materialId));
-  } catch (error) {
-    console.error('Помилка видалення:', error);
-    alert('Не вдалося видалити матеріал.');
-  }
-};
+    try {
+      if (fileId) {
+        try {
+          await api.delete(`/files/${fileId}`);
+        } catch (fileError) {
+          console.warn('Файл вже видалено або не знайдено на сервері, продовжуємо...');
+        }
+      }
+      await api.delete(`/courses/${ca.id}/materials/${materialId}`);
+      setMaterials((prev) => prev.filter((m) => m.id !== materialId));
+    } catch (error) {
+      console.error('Помилка видалення матеріалу:', error);
+      alert('Не вдалося видалити матеріал.');
+    }
+  };
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow flex flex-col">
       <div className="flex items-start justify-between mb-3">
@@ -74,33 +89,40 @@ function CourseCard({ ca, role, t }: { ca: CourseAssignment; role?: string; t: a
       
       <h3 className="font-semibold text-gray-900 mb-2">{ca.courseName}</h3>
       <div className="flex-grow">
-              {ca.teacherName && <p className="text-sm text-gray-500">{t('courses.teacher')}: {ca.teacherName}</p>}
+              {formatTeacherName(ca) && <p className="text-sm text-gray-500">{t('courses.teacher')}: {formatTeacherName(ca)}</p>}
               {ca.groupCode && <p className="text-sm text-gray-500">{t('courses.group')}: {ca.groupCode}</p>}
               <p className="text-xs text-gray-400 mt-2 mb-4">{ca.academicYear}, {t('courses.semester')} {ca.semester}</p>
             </div>
             {materials.length > 0 && (
               <div className="mt-2 mb-4">
                 <h4 className="text-sm font-semibold text-gray-700 mb-2">Навчальні матеріали:</h4>
-                <ul className="space-y-2">
-                  {materials.map((m) => (
-                    <li key={m.id} className="flex items-center justify-between group bg-gray-50 px-3 py-2 rounded-lg">
-                    <button 
-                      onClick={() => handleDownload(m.fileLink, m.originalName)}
-                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2 cursor-pointer bg-transparent border-none p-0"
-                    >
-                      {m.title} <span className="text-gray-400 text-xs"></span>
-                    </button>
-                    {isTeacher && (
-                        <button
-                          onClick={() => handleDeleteMaterial(m.fileLink, m.id)}
-                          className="text-xs font-medium text-red-600 bg-red-100 hover:bg-red-200 px-2.5 py-1.5 rounded transition-colors"
-                          title="Видалити матеріал"
+                <ul className="space-y-3">
+                  {materials.map((m: any) => {
+                    const file = m.files && m.files.length > 0 ? m.files[0] : null;
+                    const fileId = file ? (file.id || file._id) : undefined;
+                    const fileName = file ? file.originalName : '';
+
+                    return (
+                      <li key={m.id} className="flex items-center justify-between group bg-gray-50 px-3 py-2 rounded-lg mb-2">
+                        <button 
+                          onClick={() => fileId && handleDownload(fileId, fileName)}
+                          className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 text-left"
                         >
-                          🗑️
+                          {m.title} <span className="text-gray-500 text-xs">({fileName})</span>
                         </button>
-                    )}
-                    </li>
-                  ))}
+                        
+                        {isTeacher && (
+                          <button
+                            onClick={() => handleDeleteMaterial(fileId, m.id)}
+                            className="text-xs font-medium text-red-600 bg-red-100 hover:bg-red-200 px-2.5 py-1.5 rounded transition-colors"
+                            title="Видалити матеріал"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
@@ -127,14 +149,27 @@ function CourseCard({ ca, role, t }: { ca: CourseAssignment; role?: string; t: a
 }
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<CourseAssignment[]>([]);
   const { t } = useTranslation();
   
   const user = useAuthStore((state: any) => state.user); 
 
-  useEffect(() => {
-    api.get('/courses/my').then(({ data }) => setCourses(data)).catch(() => {});
-  }, []);
+  const { data: courses = [], isLoading } = useQuery({
+    queryKey: ['courses', 'my'],
+    queryFn: async () => {
+      const { data } = await api.get<PaginatedResponse<CourseAssignment>>('/courses/my');
+      return data.docs;
+    },
+  });
+
+
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -148,8 +183,8 @@ export default function CoursesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {courses.map((ca) => (
-            <CourseCard key={ca.id} ca={ca} role={user?.role} t={t} />
+          {courses.map((ca: CourseAssignment) => (
+              <CourseCard key={ca.id} ca={ca} role={user?.role} t={t} />
           ))}
         </div>
       )}

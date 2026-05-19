@@ -1,5 +1,4 @@
 import axios from 'axios';
-import type { Material, Submission } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -41,20 +40,28 @@ export const filesApi = {
   uploadMaterial: async (caId: string, title: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('title', title);
-    
-    return api.post<Material>(`/courses/${caId}/materials`, formData, {
+    const uploadRes = await api.post('/files/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    const fileId = uploadRes.data.fileId;
+    const materialRes = await api.post(`/courses/${caId}/materials`, {
+      title: title,
+      fileIds: [fileId],
+    });
+    return materialRes.data;
   },
 
-  submitAssignment: async (assignmentId: string, file: File) => {
+submitAssignment: async (assignmentId: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    
-    return api.post<Submission>(`/courses/assignments/${assignmentId}/submit`, formData, {
+    const uploadRes = await api.post('/files/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    const fileId = uploadRes.data.fileId;
+    const submitRes = await api.post(`/courses/assignments/${assignmentId}/submit`, {
+      fileIds: [fileId],
+    });
+    return submitRes.data;
   },
   
   deleteFile: async (fileId: string) => {

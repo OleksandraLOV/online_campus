@@ -10,7 +10,6 @@ import {
   groups,
   classrooms,
   studentProfiles,
-  teacherProfiles,
 } from '../common/mock-data';
 import { ScheduleEntry } from '../common/types/entities';
 
@@ -81,6 +80,13 @@ export class ScheduleService {
     if (idx === -1) throw new NotFoundException('Запис розкладу не знайдено');
     this.entries.splice(idx, 1);
     return { deleted: true };
+  }
+
+  isClassroomUsed(classroomId: string): boolean {
+    return this.entries.some(
+      (entry) =>
+        entry.classroomId === classroomId && entry.status !== 'cancelled',
+    );
   }
 
   private checkConflicts(dto: Omit<ScheduleEntry, 'id'>) {

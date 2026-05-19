@@ -1,11 +1,13 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { InjectModel } from '@nestjs/mongoose';
-import { PaginateModel } from 'mongoose';
+import { isValidObjectId, PaginateModel } from 'mongoose';
 import { User, UserDocument } from './schemas';
 import { Role } from '../common/types/roles.enum';
 import { UserDto } from './dto/user.dto';
@@ -18,6 +20,22 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginatedDto } from '../common/dto/paginated.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangeUserRoleDto } from './dto/change-user-role.dto';
+import { toId } from '../common/utils/to-id.util';
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+type UserRoleState = {
+  role: Role;
+  status: string;
+};
+
+type RoleUpdateOperation = {
+  $set: Record<string, unknown>;
+  $unset?: Record<string, ''>;
+};
 
 @Injectable()
 export class UsersService {
@@ -57,11 +75,41 @@ export class UsersService {
   }
 
   async findByLogin(login: string): Promise<User | null> {
-    return this.userModel.findOne({ login }).exec();
+    return this.userModel
+      .findOne({ login })
+      .select('+passwordHash +refreshTokenHashes')
+      .exec();
   }
 
   async findByIdWithPassword(id: string): Promise<User | null> {
-    return this.userModel.findById(id).exec();
+    return this.userModel
+      .findById(id)
+      .select('+passwordHash +refreshTokenHashes')
+      .exec();
+  }
+
+  async findAuthIdentityById(id: string): Promise<{
+    id: string;
+    login: string;
+    role: Role;
+    status: string;
+  } | null> {
+    const user = await this.userModel
+      .findById(id)
+      .select('login role status')
+      .lean()
+      .exec();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: toId(user._id),
+      login: user.login,
+      role: user.role,
+      status: user.status,
+    };
   }
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
@@ -123,7 +171,11 @@ export class UsersService {
     return transformToDto(UserDto, savedUser.toObject());
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    actorId?: string,
+  ): Promise<UserDto> {
     const {
       login,
       email,
@@ -133,6 +185,7 @@ export class UsersService {
       year,
       departmentId,
       position,
+      role,
       ...rest
     } = updateUserDto;
 
@@ -166,30 +219,113 @@ export class UsersService {
       updateData.passwordHash = await bcrypt.hash(password, 12);
     }
 
-    const currentRole = rest.role ?? existingUser.role;
+    const unsetData: Record<string, ''> = {};
+    const roleChanged = role !== undefined && role !== existingUser.role;
 
-    if (currentRole === Role.STUDENT) {
-      updateData.studentProfile = {
-        group: groupId ?? existingUser.studentProfile?.group,
-        recordBookNumber:
-          recordBookNumber ?? existingUser.studentProfile?.recordBookNumber,
-        year: year !== undefined ? year : existingUser.studentProfile?.year,
-      };
-    } else if (currentRole === Role.TEACHER) {
-      updateData.teacherProfile = {
-        department: departmentId ?? existingUser.teacherProfile?.department,
-        position: position ?? existingUser.teacherProfile?.position,
-      };
+    if (roleChanged && actorId === id) {
+      throw new ForbiddenException('Неможливо змінити власну роль');
+    }
+
+    if (roleChanged) {
+      const roleUpdate = await this.createRoleUpdateOperation(
+        id,
+        {
+          role,
+          groupId,
+          recordBookNumber,
+          year,
+          departmentId,
+          position,
+        },
+        existingUser,
+      );
+
+      Object.assign(updateData, roleUpdate.$set);
+      if (roleUpdate.$unset) {
+        Object.assign(unsetData, roleUpdate.$unset);
+      }
+    } else {
+      if (role !== undefined) {
+        updateData.role = role;
+      }
+
+      if (existingUser.role === Role.STUDENT) {
+        updateData.studentProfile = {
+          group: groupId ?? existingUser.studentProfile?.group,
+          recordBookNumber:
+            recordBookNumber ?? existingUser.studentProfile?.recordBookNumber,
+          year: year !== undefined ? year : existingUser.studentProfile?.year,
+        };
+      } else if (existingUser.role === Role.TEACHER) {
+        updateData.teacherProfile = {
+          department: departmentId ?? existingUser.teacherProfile?.department,
+          position: position ?? existingUser.teacherProfile?.position,
+        };
+      }
+    }
+
+    const updateOperation: RoleUpdateOperation = { $set: updateData };
+    if (Object.keys(unsetData).length > 0) {
+      updateOperation.$unset = unsetData;
     }
 
     const updatedUser = await this.userModel
-      .findByIdAndUpdate(id, { $set: updateData }, { returnDocument: 'after' })
+      .findByIdAndUpdate(id, updateOperation, { returnDocument: 'after' })
       .lean()
       .exec();
 
     if (!updatedUser) {
       throw new NotFoundException('Користувача не знайдено');
     }
+
+    if (roleChanged) {
+      await this.removeAllRefreshTokenHashes(id);
+    }
+
+    return transformToDto(UserDto, updatedUser);
+  }
+
+  async changeRole(
+    id: string,
+    changeUserRoleDto: ChangeUserRoleDto,
+    actorId?: string,
+  ): Promise<UserDto> {
+    this.assertValidUserId(id);
+
+    if (actorId === id) {
+      throw new ForbiddenException('Неможливо змінити власну роль');
+    }
+
+    const existingUser = (await this.userModel
+      .findById(id)
+      .select('role status')
+      .lean()
+      .exec()) as UserRoleState | null;
+
+    if (!existingUser) {
+      throw new NotFoundException('Користувача не знайдено');
+    }
+
+    const roleChanged = existingUser.role !== changeUserRoleDto.role;
+    const roleUpdate = await this.createRoleUpdateOperation(
+      id,
+      changeUserRoleDto,
+      existingUser,
+    );
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(id, roleUpdate, { returnDocument: 'after' })
+      .lean()
+      .exec();
+
+    if (!updatedUser) {
+      throw new NotFoundException('Користувача не знайдено');
+    }
+
+    if (roleChanged) {
+      await this.removeAllRefreshTokenHashes(id);
+    }
+
     return transformToDto(UserDto, updatedUser);
   }
 
@@ -245,10 +381,21 @@ export class UsersService {
     return transformToPaginatedDto(UserDto, result);
   }
 
-  async findByName(query: string): Promise<UserDto[]> {
-    const q = new RegExp(query, 'i');
+  async findByName(query: string, role?: Role): Promise<UserDto[]> {
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) return [];
+
+    const q = new RegExp(escapeRegex(normalizedQuery.slice(0, 100)), 'i');
+    const filter: Record<string, unknown> = {
+      $or: [{ firstName: q }, { lastName: q }, { middleName: q }],
+    };
+
+    if (role) {
+      filter.role = role;
+    }
+
     const users = await this.userModel
-      .find({ $or: [{ firstName: q }, { lastName: q }, { middleName: q }] })
+      .find(filter)
       .select('-passwordHash')
       .lean()
       .exec();
@@ -279,5 +426,198 @@ export class UsersService {
       .lean()
       .exec();
     return transformToDtoArray(UserDto, users);
+  }
+
+  private async createRoleUpdateOperation(
+    id: string,
+    dto: ChangeUserRoleDto,
+    existingUser: UserRoleState,
+  ): Promise<RoleUpdateOperation> {
+    this.assertProfileFieldsMatchRole(dto);
+    await this.assertCanChangeAdminRole(existingUser, dto.role, id);
+
+    if (dto.role === Role.STUDENT) {
+      const studentProfile = this.buildStudentProfile(dto);
+      await this.assertRecordBookNumberAvailable(
+        id,
+        studentProfile.recordBookNumber,
+      );
+
+      return {
+        $set: {
+          role: dto.role,
+          studentProfile,
+        },
+        $unset: {
+          teacherProfile: '',
+        },
+      };
+    }
+
+    if (dto.role === Role.TEACHER) {
+      return {
+        $set: {
+          role: dto.role,
+          teacherProfile: this.buildTeacherProfile(dto),
+        },
+        $unset: {
+          studentProfile: '',
+        },
+      };
+    }
+
+    return {
+      $set: {
+        role: dto.role,
+      },
+      $unset: {
+        studentProfile: '',
+        teacherProfile: '',
+      },
+    };
+  }
+
+  private assertValidUserId(id: string): void {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('Некоректний id користувача');
+    }
+  }
+
+  private assertProfileFieldsMatchRole(dto: ChangeUserRoleDto): void {
+    if (!Object.values(Role).includes(dto.role)) {
+      throw new BadRequestException('Некоректна роль користувача');
+    }
+
+    const hasStudentFields =
+      dto.groupId !== undefined ||
+      dto.recordBookNumber !== undefined ||
+      dto.year !== undefined;
+    const hasTeacherFields =
+      dto.departmentId !== undefined || dto.position !== undefined;
+
+    if (dto.role === Role.STUDENT && hasTeacherFields) {
+      throw new BadRequestException(
+        'Поля профілю викладача не можна передавати для ролі студента',
+      );
+    }
+
+    if (dto.role === Role.TEACHER && hasStudentFields) {
+      throw new BadRequestException(
+        'Поля профілю студента не можна передавати для ролі викладача',
+      );
+    }
+
+    if (
+      dto.role !== Role.STUDENT &&
+      dto.role !== Role.TEACHER &&
+      (hasStudentFields || hasTeacherFields)
+    ) {
+      throw new BadRequestException(
+        'Профільні поля дозволені лише для ролей студента або викладача',
+      );
+    }
+  }
+
+  private buildStudentProfile(dto: ChangeUserRoleDto): {
+    group: string;
+    recordBookNumber: string;
+    year: number;
+  } {
+    const group = dto.groupId?.trim();
+    const recordBookNumber = dto.recordBookNumber?.trim();
+    const year = dto.year;
+
+    if (
+      !group ||
+      !recordBookNumber ||
+      typeof year !== 'number' ||
+      !Number.isInteger(year) ||
+      year < 1
+    ) {
+      throw new BadRequestException(
+        'Для ролі студента потрібно передати groupId, recordBookNumber та year',
+      );
+    }
+
+    if (!isValidObjectId(group)) {
+      throw new BadRequestException('Некоректний id групи');
+    }
+
+    return {
+      group,
+      recordBookNumber,
+      year,
+    };
+  }
+
+  private buildTeacherProfile(dto: ChangeUserRoleDto): {
+    department: string;
+    position: string;
+  } {
+    const department = dto.departmentId?.trim();
+    const position = dto.position?.trim();
+
+    if (!department || !position) {
+      throw new BadRequestException(
+        'Для ролі викладача потрібно передати departmentId та position',
+      );
+    }
+
+    if (!isValidObjectId(department)) {
+      throw new BadRequestException('Некоректний id кафедри');
+    }
+
+    return {
+      department,
+      position,
+    };
+  }
+
+  private async assertRecordBookNumberAvailable(
+    id: string,
+    recordBookNumber: string,
+  ): Promise<void> {
+    const duplicateUser = await this.userModel
+      .findOne({
+        'studentProfile.recordBookNumber': recordBookNumber,
+        _id: { $ne: id },
+      })
+      .select('_id')
+      .lean()
+      .exec();
+
+    if (duplicateUser) {
+      throw new ConflictException(
+        'Користувач з таким номером залікової книжки вже існує',
+      );
+    }
+  }
+
+  private async assertCanChangeAdminRole(
+    existingUser: UserRoleState,
+    nextRole: Role,
+    id: string,
+  ): Promise<void> {
+    if (
+      existingUser.role !== Role.ADMIN ||
+      existingUser.status !== 'active' ||
+      nextRole === Role.ADMIN
+    ) {
+      return;
+    }
+
+    const activeAdminsLeft = await this.userModel
+      .countDocuments({
+        role: Role.ADMIN,
+        status: 'active',
+        _id: { $ne: id },
+      })
+      .exec();
+
+    if (activeAdminsLeft === 0) {
+      throw new BadRequestException(
+        'Неможливо змінити роль останнього активного адміністратора',
+      );
+    }
   }
 }

@@ -81,7 +81,24 @@ export interface CourseAssignment {
   courseCode?: string;
   credits?: number;
   teacherName?: string;
+  teacher?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    middleName?: string;
+    avatarUrl?: string;
+  };
   groupCode?: string;
+}
+
+export interface PaginatedResponse<T> {
+  docs: T[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 export interface Assignment {
@@ -101,6 +118,14 @@ export interface Assignment {
     fileLink: string;
     originalName: string;
   } | null;
+}
+
+export interface StudentCourse {
+  courseAssignmentId: string;
+  courseName: string;
+  courseCode: string;
+  academicYear: string;
+  semester: number;
 }
 
 export interface Grade {

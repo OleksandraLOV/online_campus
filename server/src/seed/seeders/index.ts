@@ -4,3 +4,7 @@ export * from './department.seeder';
 export * from './group.seeder';
 export * from './specialty.seeder';
 export * from './classroom.seeder';
+export * from './course.seeder';
+export * from './course-assignment.seeder';
+export * from './grade.seeder';
+export * from './assignment.seeder';

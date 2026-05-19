@@ -14,6 +14,12 @@ export class DepartmentSeeder {
   ) {}
 
   async seed(): Promise<void> {
+    const count = await this.departmentModel.countDocuments();
+    if (count > 0) {
+      this.logger.log('Departments already exist. Skipping seeding.');
+      return;
+    }
+
     const data = departments.map((dep) => ({
       ...dep,
       _id: dep.id,

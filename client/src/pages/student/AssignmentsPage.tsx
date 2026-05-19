@@ -1,25 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
-import type { Assignment } from '../../types';
+import type { Assignment, PaginatedResponse } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { FileUploader } from '../../components/FileUploader';
 import { filesApi } from '../../services/api';
 
 export default function AssignmentsPage() {
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'en' ? 'en-US' : 'uk-UA';
 
-  const refreshAssignments = () => {
-    api
-      .get('/courses/assignments/my')
-      .then(({ data }) => setAssignments(data))
-      .catch(() => {});
-  };
-
-  useEffect(() => {
-    refreshAssignments();
-  }, []);
+  const { data: assignments = [], isLoading, refetch } = useQuery({
+    queryKey: ['assignments', 'my'],
+    queryFn: async () => {
+      const { data } = await api.get<PaginatedResponse<Assignment>>('/courses/assignments/my');
+      return data.docs;
+    },
+  });
 
   const getStatusBadge = (assignment: Assignment) => {
     if (!assignment.submission) {
@@ -60,22 +56,35 @@ export default function AssignmentsPage() {
       alert('Не вдалося завантажити файл. Можливо, його було видалено.');
     }
   };
-const handleDelete = async (fileId: string, assignmentId: string) => {
-  if (!window.confirm('Ви впевнені, що хочете видалити цю роботу?')) return;
-  
-  try {
-    await api.delete(`/files/${fileId}`);
-    setAssignments((prev) => 
-      prev.map((a) => 
-        a.id === assignmentId ? { ...a, submission: null } : a
-      )
+const handleDelete = async (fileId: string | undefined, assignmentId: string) => {
+    if (!window.confirm('Ви впевнені, що хочете видалити цю роботу?')) return;
+    
+    try {
+      if (fileId) {
+        try {
+          await api.delete(`/files/${fileId}`);
+        } catch (fileError) {
+          console.warn('Файл вже видалено, продовжуємо очищення бази...');
+        }
+      }
+
+      await api.delete(`/courses/assignments/${assignmentId}/submit`);
+      
+      await refetch();
+      alert('Роботу успішно видалено!');
+    } catch (error) {
+      console.error('Помилка видалення роботи:', error);
+      alert('Не вдалося видалити роботу з бази.');
+    }
+  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
     );
-    alert('Роботу успішно видалено!');
-  } catch (error) {
-    console.error('Помилка видалення:', error);
-    alert('Не вдалося видалити файл.');
   }
-};
+
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">
@@ -88,6 +97,12 @@ const handleDelete = async (fileId: string, assignmentId: string) => {
         <div className="space-y-4">
           {assignments.map((a) => {
             const status = getStatusBadge(a);
+            //const isOverdue = new Date(a.dueDate) < new Date();
+            const isOverdue = false;
+            const submissionAny = a.submission as any; 
+            const file = submissionAny?.files && submissionAny.files.length > 0 ? submissionAny.files[0] : null;
+            const fileId = file ? (file.id || file._id) : undefined;
+            const fileName = file ? file.originalName : 'Завантажений файл';
             return (
               <div key={a.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div className="flex items-start justify-between gap-4">
@@ -101,24 +116,30 @@ const handleDelete = async (fileId: string, assignmentId: string) => {
                   </span>
                 </div>
                   {a.submission ? (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <p className="text-sm text-gray-500 mb-3">Ваша завантажена робота:</p>
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => handleDownload(a.submission!.fileLink, a.submission!.originalName)}
-                          className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                        >
-                          {a.submission!.originalName || 'Завантажений файл'}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(a.submission!.fileLink, a.id)}
-                          className="inline-flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors"
-                        >
-                          🗑️
-                        </button>
-                      </div>
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="text-sm text-gray-500 mb-3">Ваша завантажена робота:</p>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => fileId && handleDownload(fileId, fileName)}
+                        className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {a.submission!.originalName || 'Завантажений файл'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(fileId, a.id)}
+                        className="inline-flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors"
+                      >
+                        🗑️
+                      </button>
                     </div>
-                  ) : (
+                  </div>
+                ) : isOverdue ? (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="text-sm font-medium text-red-500">
+                      Термін здачі цієї роботи минув. Завантаження файлів недоступне.
+                    </p>
+                  </div>
+                ) : (
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <p className="text-sm font-medium text-gray-700 mb-3">
                       Прикріпити файл роботи
@@ -126,8 +147,13 @@ const handleDelete = async (fileId: string, assignmentId: string) => {
                     <FileUploader 
                       allowedTypes={['.pdf', '.doc', '.docx', '.zip']} 
                       onUpload={async (file) => {
-                        await filesApi.submitAssignment(a.id, file);
-                        refreshAssignments();
+                        try {
+                          await filesApi.submitAssignment(a.id, file);
+                          await refetch();
+                        } catch (error: any) {
+                          const errorMsg = error.response?.data?.message || 'Помилка при завантаженні';
+                          alert(`Увага: ${errorMsg}`);
+                        }
                       }} 
                     />
                   </div>
@@ -141,10 +167,10 @@ const handleDelete = async (fileId: string, assignmentId: string) => {
                   </span>
                   
                   {a.submission?.comment && (
-                    <div className="w-full mt-1 text-gray-600 italic">
-                      <span className="font-medium text-gray-500">{t('assignments.comment')}:</span> {a.submission.comment}
-                    </div>
-                  )}
+                      <div className="w-full mt-1 text-gray-600 italic">
+                        <span className="font-medium text-gray-500">{t('assignments.comment')}:</span> {a.submission.comment}
+                      </div>
+                    )}
                 </div>
               </div>
             );

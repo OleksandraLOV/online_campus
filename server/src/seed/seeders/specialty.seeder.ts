@@ -14,6 +14,12 @@ export class SpecialtySeeder {
   ) {}
 
   async seed(): Promise<void> {
+    const count = await this.specialtyModel.countDocuments();
+    if (count > 0) {
+      this.logger.log('Specialties already exist. Skipping seeding.');
+      return;
+    }
+
     const data = specialties.map((specialty) => ({
       ...specialty,
       _id: specialty.id,

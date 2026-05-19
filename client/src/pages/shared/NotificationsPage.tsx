@@ -26,20 +26,37 @@ export default function NotificationsPage() {
     n => !n.readFlag,
   ).length;
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (isMounted = () => true) => {
     try {
       const { data } = await api.get(
         '/notifications',
       );
 
-      setNotifications(data);
+      if (isMounted()) {
+        setNotifications(data);
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    let mounted = true;
+
+    void api
+      .get('/notifications')
+      .then(({ data }) => {
+        if (mounted) {
+          setNotifications(data);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleRead = async (id: string) => {

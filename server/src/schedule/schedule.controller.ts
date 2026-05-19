@@ -10,11 +10,13 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ScheduleService } from './schedule.service';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/roles.guard';
 import { Role } from '../common/types/roles.enum';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthenticatedRequest } from '../common/types/authenticated-request';
+import { ScheduleEntry } from '../common/types/entities';
+import { ScheduleService } from './schedule.service';
 
 @ApiTags('schedule')
 @ApiBearerAuth()
@@ -36,7 +38,7 @@ export class ScheduleController {
   }
 
   @Get('my')
-  findMy(@Request() req: any) {
+  findMy(@Request() req: AuthenticatedRequest) {
     const { sub, role } = req.user;
     if (role === Role.STUDENT) {
       return this.scheduleService.findByStudent(sub);
@@ -49,13 +51,13 @@ export class ScheduleController {
 
   @Post()
   @Roles(Role.DISPATCHER, Role.ADMIN)
-  create(@Body() body: any) {
+  create(@Body() body: Omit<ScheduleEntry, 'id'>) {
     return this.scheduleService.create(body);
   }
 
   @Put(':id')
   @Roles(Role.DISPATCHER, Role.ADMIN)
-  update(@Param('id') id: string, @Body() body: any) {
+  update(@Param('id') id: string, @Body() body: Partial<ScheduleEntry>) {
     return this.scheduleService.update(id, body);
   }
 

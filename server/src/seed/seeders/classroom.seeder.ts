@@ -14,6 +14,12 @@ export class ClassroomSeeder {
   ) {}
 
   async seed(): Promise<void> {
+    const count = await this.classroomModel.countDocuments();
+    if (count > 0) {
+      this.logger.log('Classrooms already exist. Skipping seeding.');
+      return;
+    }
+
     const data = classrooms.map((classroom) => ({
       ...classroom,
       _id: classroom.id,

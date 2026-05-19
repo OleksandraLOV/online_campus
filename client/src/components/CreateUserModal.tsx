@@ -30,6 +30,22 @@ interface UserProfile {
   };
 }
 
+type UserFormData = {
+  login: string;
+  password?: string;
+  role: Role;
+  email: string;
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  phone: string;
+  groupId: string;
+  recordBookNumber: string;
+  year: number;
+  departmentId: string;
+  position: string;
+};
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -37,38 +53,54 @@ interface Props {
   userToEdit?: UserProfile | null;
 }
 
+function getReferenceId(value: ReferenceItem | string | undefined): string {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  return value.id || value._id || '';
+}
+
+function buildInitialFormData(userToEdit?: UserProfile | null): UserFormData {
+  if (!userToEdit) {
+    return {
+      login: '',
+      password: '',
+      role: Role.STUDENT,
+      email: '',
+      firstName: '',
+      lastName: '',
+      middleName: '',
+      phone: '',
+      groupId: '',
+      recordBookNumber: '',
+      year: 1,
+      departmentId: '',
+      position: '',
+    };
+  }
+
+  return {
+    login: userToEdit.login || '',
+    password: '',
+    role: userToEdit.role || Role.STUDENT,
+    email: userToEdit.email || '',
+    firstName: userToEdit.firstName || '',
+    lastName: userToEdit.lastName || '',
+    middleName: userToEdit.middleName || '',
+    phone: userToEdit.phone || '',
+    groupId: getReferenceId(userToEdit.studentProfile?.group),
+    recordBookNumber: userToEdit.studentProfile?.recordBookNumber || '',
+    year: userToEdit.studentProfile?.year || 1,
+    departmentId: getReferenceId(userToEdit.teacherProfile?.department),
+    position: userToEdit.teacherProfile?.position || '',
+  };
+}
+
 export default function CreateUserModal({ isOpen, onClose, onSuccess, userToEdit }: Props) {
   const { t } = useTranslation();
 
-  const [formData, setFormData] = useState<{
-    login: string;
-    password?: string;
-    role: Role;
-    email: string;
-    firstName: string;
-    lastName: string;
-    middleName: string;
-    phone: string;
-    groupId: string;
-    recordBookNumber: string;
-    year: number;
-    departmentId: string;
-    position: string;
-  }>({
-    login: '',
-    password: '',
-    role: Role.STUDENT,
-    email: '',
-    firstName: '',
-    lastName: '',
-    middleName: '',
-    phone: '',
-    groupId: '',
-    recordBookNumber: '',
-    year: 1,
-    departmentId: '',
-    position: '',
-  });
+  const [formData, setFormData] = useState<UserFormData>(() =>
+    buildInitialFormData(userToEdit),
+  );
 
   const [groups, setGroups] = useState<ReferenceItem[]>([]);
   const [departments, setDepartments] = useState<ReferenceItem[]>([]);
@@ -86,47 +118,6 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, userToEdit
   };
 
   useEffect(() => {
-    if (isOpen) {
-      if (userToEdit) {
-        const studentGroup = userToEdit.studentProfile?.group;
-        const teacherDept = userToEdit.teacherProfile?.department;
-
-        setFormData({
-          login: userToEdit.login || '',
-          password: '',
-          role: userToEdit.role || Role.STUDENT,
-          email: userToEdit.email || '',
-          firstName: userToEdit.firstName || '',
-          lastName: userToEdit.lastName || '',
-          middleName: userToEdit.middleName || '',
-          phone: userToEdit.phone || '',
-          groupId: typeof studentGroup === 'object' ? studentGroup?.id || '' : studentGroup || '',
-          recordBookNumber: userToEdit.studentProfile?.recordBookNumber || '',
-          year: userToEdit.studentProfile?.year || 1,
-          departmentId: typeof teacherDept === 'object' ? teacherDept?.id || '' : teacherDept || '',
-          position: userToEdit.teacherProfile?.position || '',
-        });
-      } else {
-        setFormData({
-          login: '',
-          password: '',
-          role: Role.STUDENT,
-          email: '',
-          firstName: '',
-          lastName: '',
-          middleName: '',
-          phone: '',
-          groupId: '',
-          recordBookNumber: '',
-          year: 1,
-          departmentId: '',
-          position: '',
-        });
-      }
-    }
-  }, [isOpen, userToEdit]);
-
-  useEffect(() => {
     if (!isOpen) return;
     api.get('/references/groups').then(({ data }) => setGroups(data)).catch(() => {});
     api.get('/references/departments').then(({ data }) => setDepartments(data)).catch(() => {});
@@ -140,6 +131,42 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, userToEdit
     if (e.target.name === 'password') {
       setPasswordError(validatePassword(e.target.value));
     }
+  };
+
+  const buildBasePayload = () => {
+    const payload: Record<string, unknown> = {
+      login: formData.login.trim(),
+      email: formData.email.trim(),
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      middleName: formData.middleName.trim(),
+      phone: formData.phone.trim(),
+    };
+
+    if (formData.password) {
+      payload.password = formData.password;
+    }
+
+    return payload;
+  };
+
+  const buildRolePayload = () => {
+    const payload: Record<string, unknown> = {
+      role: formData.role,
+    };
+
+    if (formData.role === Role.STUDENT) {
+      payload.groupId = formData.groupId;
+      payload.recordBookNumber = formData.recordBookNumber.trim();
+      payload.year = formData.year;
+    }
+
+    if (formData.role === Role.TEACHER) {
+      payload.departmentId = formData.departmentId;
+      payload.position = formData.position.trim();
+    }
+
+    return payload;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -157,36 +184,31 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, userToEdit
     }
 
     try {
-      const payload: Record<string, unknown> = { ...formData };
+      const basePayload = buildBasePayload();
+      const rolePayload = buildRolePayload();
 
-      if (userToEdit && !payload.password) {
-        Reflect.deleteProperty(payload, 'password');
-        await api.patch(`/users/${userToEdit.id}`, payload);
-      } else {
-        if (userToEdit) {
-          await api.patch(`/users/${userToEdit.id}`, payload);
+      if (userToEdit) {
+        const roleChanged = userToEdit.role !== formData.role;
+
+        if (roleChanged) {
+          await api.patch(`/users/${userToEdit.id}`, basePayload);
+          await api.patch(`/users/${userToEdit.id}/role`, rolePayload);
         } else {
-          await api.post('/users', payload);
+          await api.patch(`/users/${userToEdit.id}`, {
+            ...basePayload,
+            ...rolePayload,
+          });
         }
+      } else {
+        await api.post('/users', {
+          ...basePayload,
+          ...rolePayload,
+        });
       }
 
       onSuccess();
       onClose();
-      setFormData({
-        login: '',
-        password: '',
-        role: Role.STUDENT,
-        email: '',
-        firstName: '',
-        lastName: '',
-        middleName: '',
-        phone: '',
-        groupId: '',
-        recordBookNumber: '',
-        year: 1,
-        departmentId: '',
-        position: '',
-      });
+      setFormData(buildInitialFormData());
     } catch (err: unknown) {
       const errorObj = err as { response?: { data?: { message?: string } } };
       setError(errorObj.response?.data?.message || 'Помилка при створенні користувача');
