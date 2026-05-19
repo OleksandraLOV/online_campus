@@ -14,6 +14,12 @@ export class CourseAssignmentSeeder {
   ) {}
 
   async seed(): Promise<void> {
+    const count = await this.courseAssignmentModel.countDocuments();
+    if (count > 0) {
+      this.logger.log('Course assignments already exist. Skipping seeding.');
+      return;
+    }
+
     const data = courseAssignments.map((ca) => ({
       ...ca,
       _id: ca.id,

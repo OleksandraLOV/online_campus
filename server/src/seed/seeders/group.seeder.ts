@@ -13,6 +13,12 @@ export class GroupSeeder {
   ) {}
 
   async seed(): Promise<void> {
+    const count = await this.groupModel.countDocuments();
+    if (count > 0) {
+      this.logger.log('Groups already exist. Skipping seeding.');
+      return;
+    }
+
     const data = groups.map((group) => ({
       ...group,
       _id: group.id,

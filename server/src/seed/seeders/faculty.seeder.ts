@@ -13,6 +13,12 @@ export class FacultySeeder {
   ) {}
 
   async seed(): Promise<void> {
+    const count = await this.facultyModel.countDocuments();
+    if (count > 0) {
+      this.logger.log('Faculties already exist. Skipping seeding.');
+      return;
+    }
+
     const data = faculties.map((faculty) => ({
       ...faculty,
       _id: faculty.id,
