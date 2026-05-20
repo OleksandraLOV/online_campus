@@ -26,7 +26,7 @@ export default function NotificationsBell() {
 
     loadUnreadCount();
 
-    const intervalId = window.setInterval(loadUnreadCount, 30000);
+    const intervalId = window.setInterval(loadUnreadCount, 120000);
 
     return () => {
       isMounted = false;
