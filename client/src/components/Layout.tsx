@@ -1,5 +1,5 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { Role, ROLE_LABEL_KEYS } from '../types';
@@ -14,16 +14,8 @@ const NAV_ITEMS: {
   roles: Role[];
 }[] = [
   { labelKey: 'nav.profile', path: '/profile', roles: ALL_ROLES },
-  {
-    labelKey: 'nav.dashboard',
-    path: '/dashboard',
-    roles: ALL_ROLES,
-  },
-  {
-    labelKey: 'nav.schedule',
-    path: '/schedule',
-    roles: ALL_ROLES,
-  },
+  { labelKey: 'nav.dashboard', path: '/dashboard', roles: ALL_ROLES },
+  { labelKey: 'nav.schedule', path: '/schedule', roles: ALL_ROLES },
   {
     labelKey: 'nav.courses',
     path: '/courses',
@@ -49,16 +41,11 @@ const NAV_ITEMS: {
     path: '/audit-log',
     roles: [Role.ADMIN],
   },
-  {
-    labelKey: 'nav.auditLog',
-    path: '/audit-log',
-    roles: [Role.ADMIN],
-  },
 ];
 
 export default function Layout() {
   const navigate = useNavigate();
-
+  const location = useLocation();
   const { t } = useTranslation();
 
   const { user, logout, loadProfile, isAuthenticated } = useAuthStore();
@@ -80,90 +67,175 @@ export default function Layout() {
     navigate('/login');
   };
 
+  const pageTitle = useMemo(() => {
+    switch (location.pathname) {
+      case '/dashboard':
+        return t('nav.dashboard');
+      case '/profile':
+        return t('nav.profile');
+      case '/schedule':
+        return t('nav.schedule');
+      case '/courses':
+        return t('nav.courses');
+      case '/assignments':
+        return t('nav.assignments');
+      case '/grades':
+        return t('nav.grades');
+      case '/users':
+        return t('nav.users');
+      case '/notifications':
+        return t('nav.notifications');
+      case '/audit-log':
+        return t('nav.auditLog');
+      default:
+        return t('app.title');
+    }
+  }, [location.pathname, t]);
+
+  const currentDate = useMemo(() => {
+    return new Intl.DateTimeFormat('uk-UA', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date());
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f3f6fb]">
       {sidebarOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-30 bg-slate-950/40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          aria-label="Close sidebar"
         />
       )}
 
       <aside
         className={`
           fixed inset-y-0 left-0 z-40
-          w-64 bg-blue-900 text-white
+          w-[280px] bg-[#16233b] text-white
           transform transition-transform duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
         `}>
-        <div className="p-4 border-b border-blue-800">
-          <h1 className="text-lg font-bold">{t('app.title')}</h1>
+        <div className="flex h-full flex-col">
+          <div className="border-b border-white/10 px-6 py-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-lg font-bold shadow-lg">
+                M
+              </div>
 
-          {user && (
-            <p className="mt-1 text-sm text-blue-200">
-              {t(ROLE_LABEL_KEYS[user.role])}
-            </p>
-          )}
+              <div>
+                <h1 className="text-lg font-semibold tracking-wide">
+                  {t('app.title')}
+                </h1>
+
+                {user && (
+                  <p className="mt-1 text-sm text-slate-300">
+                    {t(ROLE_LABEL_KEYS[user.role])}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <nav className="flex-1 px-4 py-6">
+            <div className="space-y-2">
+              {visibleNavItems.map((item) => {
+                const isActive =
+                  location.pathname === item.path ||
+                  (item.path !== '/dashboard' &&
+                    location.pathname.startsWith(item.path));
+
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={
+                      isActive
+                        ? 'flex items-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-[0_12px_30px_rgba(37,99,235,0.35)]'
+                        : 'flex items-center rounded-2xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white'
+                    }>
+                    {t(item.labelKey)}
+                  </Link>
+                );
+              })}
+
+              <Link
+                to="/notifications"
+                onClick={() => setSidebarOpen(false)}
+                className={
+                  location.pathname === '/notifications'
+                    ? 'flex items-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-[0_12px_30px_rgba(37,99,235,0.35)]'
+                    : 'flex items-center rounded-2xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white'
+                }>
+                {t('nav.notifications')}
+              </Link>
+            </div>
+          </nav>
+
+          <div className="border-t border-white/10 px-4 py-5">
+            <div className="mb-4 rounded-2xl bg-white/5 px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                {t('layout.supportTitle', 'Підтримка')}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-slate-300">
+                {t(
+                  'layout.supportText',
+                  'Зверніться до технічної підтримки через бот або пошту.',
+                )}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center rounded-2xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white">
+              {t('layout.logout')}
+            </button>
+          </div>
         </div>
-
-        <nav className="py-2">
-          {visibleNavItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setSidebarOpen(false)}
-              className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors">
-              {t(item.labelKey)}
-            </Link>
-          ))}
-
-          <Link
-            to="/notifications"
-            onClick={() => setSidebarOpen(false)}
-            className="block px-4 py-2.5 text-blue-100 hover:bg-blue-800 transition-colors">
-            {t('nav.notifications')}
-          </Link>
-        </nav>
       </aside>
 
-      <div className="lg:pl-64 min-h-screen flex flex-col">
-        <header className="sticky top-0 z-20 border-b bg-white px-4 py-3 shadow-sm sm:px-6">
-          <div className="flex items-center justify-between gap-3">
+      <div className="min-h-screen lg:pl-[280px]">
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen((prev) => !prev)}
-              className="text-xl text-gray-700 lg:hidden">
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-xl text-slate-700 transition hover:bg-slate-50 lg:hidden">
               ☰
             </button>
 
-            <div className="ml-auto flex items-center gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <h2 className="truncate text-2xl font-bold tracking-tight text-slate-900">
+                {pageTitle}
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 capitalize">
+                {currentDate}
+              </p>
+            </div>
+
+            <div className="ml-auto flex items-center gap-3">
               <LanguageSwitcher />
 
               {user && (
                 <Link
                   to="/profile"
-                  className="hidden sm:flex h-14 items-center rounded-full border border-gray-300 px-6 transition hover:bg-gray-50 hover:border-gray-400">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user.lastName} {user.firstName}
-                  </p>
+                  className="hidden sm:flex h-14 items-center rounded-full border border-slate-200 bg-white px-6 text-sm font-medium text-slate-900 transition hover:bg-slate-50 hover:border-slate-300">
+                  {user.lastName} {user.firstName}
                 </Link>
               )}
 
               <NotificationsBell />
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-700">
-                {t('layout.logout')}
-              </button>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="px-4 py-6 sm:px-6">
           <Outlet />
         </main>
       </div>

@@ -51,22 +51,40 @@ const resources = {
       'roles.admin': 'Адмін',
 
       'dashboard.welcome': 'Вітаємо, {{name}}!',
+      'dashboard.overview': 'Сьогоднішній огляд вашого кабінету',
+
       'dashboard.profile': 'Профіль',
       'dashboard.role': 'Роль',
+      'dashboard.status': 'Статус',
       'dashboard.email': 'Email',
       'dashboard.phone': 'Телефон',
       'dashboard.recordBook': 'Залікова книжка',
-      'dashboard.year': 'Курс',
+      'dashboard.year': 'Рік навчання',
+      'dashboard.studyYear': 'Рік навчання',
       'dashboard.position': 'Посада',
+      'dashboard.groupCourse': 'Група / курс',
+      'dashboard.groupId': 'ID групи',
+      'dashboard.departmentId': 'ID кафедри',
+
       'dashboard.todaySchedule': 'Розклад на сьогодні',
-      'dashboard.noClassesToday': 'Занять сьогодні немає',
+      'dashboard.lessonsCount': '{{count}} занять',
+      'dashboard.noClassesToday': 'Сьогодні занять немає',
+      'dashboard.noExtraInfo': 'Без додаткової інформації',
+
       'dashboard.notifications': 'Сповіщення',
       'dashboard.noNotifications': 'Немає сповіщень',
-      'dashboard.adminPanel': 'Панель управління',
-      'dashboard.usersCount': 'Користувачів',
-      'dashboard.groupsCount': 'Груп',
-      'dashboard.coursesCount': 'Дисциплін',
-      'dashboard.classroomsCount': 'Аудиторій',
+
+      'dashboard.deadlinesTitle': 'Найближчі дедлайни',
+      'dashboard.noDeadlines': 'Немає актуальних дедлайнів.',
+
+      'dashboard.surveysTitle': 'Важливі опитування',
+      'dashboard.noSurveys': 'Наразі активних опитувань немає.',
+
+      'dashboard.adminPanel': 'Адмін-панель',
+      'dashboard.usersCount': 'Користувачі',
+      'dashboard.groupsCount': 'Групи',
+      'dashboard.coursesCount': 'Курси',
+      'dashboard.classroomsCount': 'Аудиторії',
 
       'schedule.title': 'Розклад',
       'schedule.day': 'День',
@@ -89,7 +107,8 @@ const resources = {
       'courses.semester': 'семестр',
       'courses.details': 'Деталі дисципліни',
       'courses.academicYear': 'Навчальний рік',
-      'courses.detailPlaceholder': 'Тут будуть відображатися навчальні матеріали та завдання курсу.',
+      'courses.detailPlaceholder':
+        'Тут будуть відображатися навчальні матеріали та завдання курсу.',
       'courses.studentsNotFound': 'Студентів не знайдено',
       'courses.materialsEmpty': 'Матеріалів ще немає',
       'courses.materialTitle': 'Назва та опис',
@@ -99,6 +118,10 @@ const resources = {
       'courses.tabs.grades': 'Оцінки',
 
       'common.back': 'Назад',
+
+      'layout.supportTitle': 'Підтримка',
+      'layout.supportText':
+        'Зверніться до технічної підтримки через бот або пошту.',
 
       'assignments.title': 'Мої завдання',
       'assignments.empty': 'Завдань немає',
@@ -249,17 +272,35 @@ const resources = {
       'roles.admin': 'Admin',
 
       'dashboard.welcome': 'Welcome, {{name}}!',
+      'dashboard.overview': 'Today overview of your account',
+
       'dashboard.profile': 'Profile',
       'dashboard.role': 'Role',
+      'dashboard.status': 'Status',
       'dashboard.email': 'Email',
       'dashboard.phone': 'Phone',
       'dashboard.recordBook': 'Record book',
       'dashboard.year': 'Year',
+      'dashboard.studyYear': 'Study year',
       'dashboard.position': 'Position',
+      'dashboard.groupCourse': 'Group / year',
+      'dashboard.groupId': 'Group ID',
+      'dashboard.departmentId': 'Department ID',
+
       'dashboard.todaySchedule': "Today's schedule",
+      'dashboard.lessonsCount': '{{count}} classes',
       'dashboard.noClassesToday': 'No classes today',
+      'dashboard.noExtraInfo': 'No additional information',
+
       'dashboard.notifications': 'Notifications',
       'dashboard.noNotifications': 'No notifications',
+
+      'dashboard.deadlinesTitle': 'Upcoming deadlines',
+      'dashboard.noDeadlines': 'No active deadlines.',
+
+      'dashboard.surveysTitle': 'Important surveys',
+      'dashboard.noSurveys': 'There are no active surveys right now.',
+
       'dashboard.adminPanel': 'Admin panel',
       'dashboard.usersCount': 'Users',
       'dashboard.groupsCount': 'Groups',
@@ -287,7 +328,8 @@ const resources = {
       'courses.semester': 'semester',
       'courses.details': 'Course Details',
       'courses.academicYear': 'Academic Year',
-      'courses.detailPlaceholder': 'Study materials and course assignments will be displayed here.',
+      'courses.detailPlaceholder':
+        'Study materials and course assignments will be displayed here.',
       'courses.studentsNotFound': 'No students found',
       'courses.materialsEmpty': 'No materials yet',
       'courses.materialTitle': 'Title and description',
@@ -297,6 +339,9 @@ const resources = {
       'courses.tabs.grades': 'Grades',
 
       'common.back': 'Back',
+
+      'layout.supportTitle': 'Support',
+      'layout.supportText': 'Contact technical support via bot or email.',
 
       'assignments.title': 'My assignments',
       'assignments.empty': 'No assignments',

@@ -1,188 +1,133 @@
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { Role, ROLE_LABEL_KEYS } from '../../types';
-import type { ScheduleEntry, Notification } from '../../types';
 import api from '../../services/api';
+import ProfileSummaryCard from '../../components/dashboard/ProfileSummaryCard';
+import PerformanceCard from '../../components/dashboard/PerformanceCard';
+import TodayScheduleCard from '../../components/dashboard/TodayScheduleCard';
+import DeadlinesCard from '../../components/dashboard/DeadlinesCard';
+import SurveyHighlightCard from '../../components/dashboard/SurveyHighlightCard';
+
+export type ScheduleItem = {
+  id?: string;
+  title?: string;
+  subjectName?: string;
+  courseName?: string;
+  lessonType?: string;
+  teacherName?: string;
+  classroom?: string;
+  classroomName?: string;
+  startTime?: string;
+  endTime?: string;
+  status?: string;
+  date?: string;
+};
+
+export type NotificationItem = {
+  id?: string;
+  title?: string;
+  message?: string;
+  createdAt?: string;
+  type?: string;
+  read?: boolean;
+};
+
+function normalizeArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (
+    value &&
+    typeof value === 'object' &&
+    'items' in value &&
+    Array.isArray((value as { items?: unknown[] }).items)
+  ) {
+    return ((value as { items: T[] }).items ?? []) as T[];
+  }
+  return [];
+}
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
-  const { t } = useTranslation();
 
-  const [todaySchedule, setTodaySchedule] = useState<ScheduleEntry[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    api
-      .get('/schedule/my')
-      .then(({ data }) => {
-        const today = new Date().toISOString().split('T')[0];
-        setTodaySchedule(data.filter((e: ScheduleEntry) => e.date === today));
-      })
-      .catch(() => {});
+    let isMounted = true;
 
-    api
-      .get('/notifications')
-      .then(({ data }) => {
-        setNotifications(data.slice(0, 5));
-      })
-      .catch(() => {});
+    const loadDashboardData = async () => {
+      setIsLoading(true);
+
+      const [scheduleResult, notificationsResult] = await Promise.allSettled([
+        api.get('/schedule/my'),
+        api.get('/notifications'),
+      ]);
+
+      if (!isMounted) return;
+
+      if (scheduleResult.status === 'fulfilled') {
+        setSchedule(normalizeArray<ScheduleItem>(scheduleResult.value.data));
+      } else {
+        setSchedule([]);
+      }
+
+      if (notificationsResult.status === 'fulfilled') {
+        setNotifications(
+          normalizeArray<NotificationItem>(notificationsResult.value.data),
+        );
+      } else {
+        setNotifications([]);
+      }
+
+      setIsLoading(false);
+    };
+
+    loadDashboardData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  if (!user) return null;
+  const greetingName =
+    user?.firstName || user?.lastName || user?.login || 'користувачу';
+
+  const todaySchedule = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const filtered = schedule.filter((item) => {
+      if (!item.date) return true;
+      return item.date.slice(0, 10) === today;
+    });
+
+    return filtered.slice(0, 4);
+  }, [schedule]);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        {t('dashboard.welcome', {
-          name: `${user.firstName} ${user.lastName}`,
-        })}
-      </h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* User Info Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            {t('dashboard.profile')}
-          </h2>
-
-          <div className="space-y-2 text-sm">
-            <p>
-              <span className="text-gray-500">{t('dashboard.role')}:</span>{' '}
-              {t(ROLE_LABEL_KEYS[user.role])}
-            </p>
-
-            <p>
-              <span className="text-gray-500">{t('dashboard.email')}:</span>{' '}
-              {user.email}
-            </p>
-
-            {user.phone && (
-              <p>
-                <span className="text-gray-500">{t('dashboard.phone')}:</span>{' '}
-                {user.phone}
-              </p>
-            )}
-
-            {user.studentProfile && (
-              <>
-                <p>
-                  <span className="text-gray-500">
-                    {t('dashboard.recordBook')}:
-                  </span>{' '}
-                  {user.studentProfile.recordBookNumber}
-                </p>
-
-                <p>
-                  <span className="text-gray-500">{t('dashboard.year')}:</span>{' '}
-                  {user.studentProfile.year}
-                </p>
-              </>
-            )}
-
-            {user.teacherProfile && (
-              <p>
-                <span className="text-gray-500">
-                  {t('dashboard.position')}:
-                </span>{' '}
-                {user.teacherProfile.position}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Today's Schedule */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            {t('dashboard.todaySchedule')}
-          </h2>
-
-          {todaySchedule.length === 0 ? (
-            <p className="text-gray-400 text-sm">
-              {t('dashboard.noClassesToday')}
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {todaySchedule.map((entry) => (
-                <div
-                  key={entry.id}
-                  className={`p-3 rounded-lg border ${
-                    entry.status === 'cancelled'
-                      ? 'bg-red-50 border-red-200'
-                      : 'bg-blue-50 border-blue-200'
-                  }`}>
-                  <div className="text-sm font-medium">{entry.courseName}</div>
-
-                  <div className="text-xs text-gray-500 mt-1">
-                    {entry.startTime} - {entry.endTime} | {entry.classroom}
-                  </div>
-
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    {entry.type}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Recent Notifications */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            {t('dashboard.notifications')}
-          </h2>
-
-          {notifications.length === 0 ? (
-            <p className="text-gray-400 text-sm">
-              {t('dashboard.noNotifications')}
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {notifications.map((ntf) => (
-                <div
-                  key={ntf.id}
-                  className={`p-3 rounded-lg border ${
-                    ntf.readFlag
-                      ? 'bg-gray-50 border-gray-200'
-                      : 'bg-yellow-50 border-yellow-200'
-                  }`}>
-                  <div className="text-sm font-medium">{ntf.title}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {ntf.message}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+          Вітаємо, {greetingName}!
+        </h1>
+        <p className="mt-2 text-base text-slate-500">
+          Сьогоднішній огляд вашого кабінету
+        </p>
       </div>
 
-      {/* Role-specific widgets */}
-      {(user.role === Role.ADMIN ||
-        user.role === Role.PRESIDENT ||
-        user.role === Role.RECTOR) && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            {t('dashboard.adminPanel')}
-          </h2>
+      <div className="grid gap-6 xl:grid-cols-[460px_minmax(0,1fr)]">
+        <div className="space-y-6">
+          <ProfileSummaryCard user={user} />
+          <PerformanceCard user={user} />
+        </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard label={t('dashboard.usersCount')} value="15" />
-            <StatCard label={t('dashboard.groupsCount')} value="3" />
-            <StatCard label={t('dashboard.coursesCount')} value="5" />
-            <StatCard label={t('dashboard.classroomsCount')} value="5" />
+        <div className="space-y-6">
+          <TodayScheduleCard items={todaySchedule} isLoading={isLoading} />
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <DeadlinesCard items={notifications} />
+            <SurveyHighlightCard items={notifications} />
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-blue-50 rounded-lg p-4 text-center">
-      <div className="text-2xl font-bold text-blue-700">{value}</div>
-      <div className="text-sm text-gray-600 mt-1">{label}</div>
+      </div>
     </div>
   );
 }
