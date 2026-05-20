@@ -22,7 +22,7 @@ export default function PerformanceCard({ user }: Props) {
     '—';
 
   const rightValue =
-    user?.studentProfile?.groupId || user?.teacherProfile?.departmentId || '—';
+    user?.studentProfile?.group || user?.teacherProfile?.department || '—';
 
   return (
     <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
@@ -49,26 +49,28 @@ export default function PerformanceCard({ user }: Props) {
         </div>
       </div>
 
-      <div className="mt-6 space-y-3">
-        <div className="grid grid-cols-[150px_minmax(0,1fr)] gap-3">
-          <span className="text-slate-400">
-            {user?.studentProfile
-              ? t('dashboard.studyYear')
-              : t('dashboard.position')}
-          </span>
-          <span className="font-medium text-slate-900">{leftValue}</span>
-        </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-4">
+        <span className="text-slate-400">
+          {user?.studentProfile
+            ? t('dashboard.studyYear')
+            : t('dashboard.position')}
+        </span>
 
-        <div className="grid grid-cols-[150px_minmax(0,1fr)] gap-3">
-          <span className="text-slate-400">
-            {user?.studentProfile
-              ? t('dashboard.groupId')
-              : t('dashboard.departmentId')}
-          </span>
-          <span className="break-words font-medium text-slate-900">
-            {rightValue}
-          </span>
-        </div>
+        <span className="text-right font-semibold text-slate-900">
+          {leftValue}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-4">
+        <span className="text-slate-400">
+          {user?.studentProfile
+            ? t('dashboard.groupId')
+            : t('dashboard.departmentId')}
+        </span>
+
+        <span className="break-words text-right font-semibold text-slate-900">
+          {rightValue}
+        </span>
       </div>
     </div>
   );

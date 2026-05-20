@@ -1,9 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { ROLE_LABEL_KEYS } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+
+type InfoRowProps = {
+  label: string;
+  value: ReactNode;
+};
+
+function InfoRow({ label, value }: InfoRowProps) {
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-4">
+      <span className="font-medium text-gray-700">{label}:</span>
+
+      <span className="min-w-0 break-words text-right text-gray-900">
+        {value || '—'}
+      </span>
+    </div>
+  );
+}
 
 import {
   changePasswordSchema,
@@ -188,43 +205,26 @@ export default function ProfilePage() {
             {t('profile.commonInfo')}
           </h2>
 
-          <div className="space-y-4 text-sm text-gray-700">
-            <p>
-              <span className="font-semibold text-gray-900">
-                {t('profile.login')}:
-              </span>{' '}
-              {user.login}
-            </p>
+          <div className="space-y-3 text-sm">
+            <InfoRow label={t('profile.login')} value={user.login} />
 
-            <p>
-              <span className="font-semibold text-gray-900">
-                {t('profile.email')}:
-              </span>{' '}
-              {user.email || '—'}
-            </p>
+            <InfoRow label={t('profile.email')} value={user.email || '—'} />
 
-            <p>
-              <span className="font-semibold text-gray-900">
-                {t('profile.phone')}:
-              </span>{' '}
-              {user.phone || '—'}
-            </p>
+            <InfoRow label={t('profile.phone')} value={user.phone || '—'} />
 
-            <p>
-              <span className="font-semibold text-gray-900">
-                {t('profile.status')}:
-              </span>{' '}
-              {user.status === 'active'
-                ? t('status.active')
-                : t('status.blocked')}
-            </p>
+            <InfoRow
+              label={t('profile.status')}
+              value={
+                user.status === 'active'
+                  ? t('status.active')
+                  : t('status.blocked')
+              }
+            />
 
-            <p>
-              <span className="font-semibold text-gray-900">
-                {t('profile.role')}:
-              </span>{' '}
-              {t(ROLE_LABEL_KEYS[user.role])}
-            </p>
+            <InfoRow
+              label={t('profile.role')}
+              value={t(ROLE_LABEL_KEYS[user.role])}
+            />
           </div>
         </section>
 
@@ -234,27 +234,21 @@ export default function ProfilePage() {
               {t('profile.studentInfo')}
             </h2>
 
-            <div className="space-y-4 text-sm text-gray-700">
-              <p>
-                <span className="font-semibold text-gray-900">
-                  {t('profile.recordBookNumber')}:
-                </span>{' '}
-                {user.studentProfile.recordBookNumber || '—'}
-              </p>
+            <div className="space-y-3 text-sm">
+              <InfoRow
+                label={t('profile.recordBookNumber')}
+                value={user.studentProfile.recordBookNumber || '—'}
+              />
 
-              <p>
-                <span className="font-semibold text-gray-900">
-                  {t('profile.year')}:
-                </span>{' '}
-                {user.studentProfile.year ?? '—'}
-              </p>
+              <InfoRow
+                label={t('profile.year')}
+                value={user.studentProfile.year ?? '—'}
+              />
 
-              <p>
-                <span className="font-semibold text-gray-900">
-                  {t('profile.groupId')}:
-                </span>{' '}
-                {user.studentProfile.group || '—'}
-              </p>
+              <InfoRow
+                label={t('profile.groupId')}
+                value={user.studentProfile.group || '—'}
+              />
             </div>
           </section>
         )}
@@ -265,20 +259,16 @@ export default function ProfilePage() {
               {t('profile.teacherInfo')}
             </h2>
 
-            <div className="space-y-4 text-sm text-gray-700">
-              <p>
-                <span className="font-semibold text-gray-900">
-                  {t('profile.position')}:
-                </span>{' '}
-                {user.teacherProfile.position || '—'}
-              </p>
+            <div className="space-y-3 text-sm">
+              <InfoRow
+                label={t('profile.position')}
+                value={user.teacherProfile.position || '—'}
+              />
 
-              <p>
-                <span className="font-semibold text-gray-900">
-                  {t('profile.departmentId')}:
-                </span>{' '}
-                {user.teacherProfile.department || '—'}
-              </p>
+              <InfoRow
+                label={t('profile.departmentId')}
+                value={user.teacherProfile.department || '—'}
+              />
             </div>
           </section>
         )}

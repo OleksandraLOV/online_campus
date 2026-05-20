@@ -191,12 +191,16 @@ export default function Layout() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex w-full items-center rounded-2xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white">
-              {t('layout.logout')}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex min-h-10 flex-1 items-center rounded-2xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white">
+                {t('layout.logout')}
+              </button>
+
+              <LanguageSwitcher showLabel={false} className="shrink-0" />
+            </div>
           </div>
         </div>
       </aside>
@@ -221,12 +225,10 @@ export default function Layout() {
             </div>
 
             <div className="ml-auto flex shrink-0 items-center justify-end gap-2 sm:gap-3">
-              <LanguageSwitcher />
-
               {user && (
                 <Link
                   to="/profile"
-                  className="hidden md:flex h-12 items-center rounded-full border border-slate-200 bg-white px-5 text-sm font-medium text-slate-900 transition hover:bg-slate-50 hover:border-slate-300">
+                  className="hidden h-12 items-center rounded-full border border-slate-200 bg-white px-5 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 md:flex">
                   {user.lastName} {user.firstName}
                 </Link>
               )}

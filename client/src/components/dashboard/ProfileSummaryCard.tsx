@@ -43,29 +43,29 @@ export default function ProfileSummaryCard({ user }: Props) {
         </div>
       </div>
 
-      <div className="mt-6 space-y-4">
-        <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-3">
-          <span className="text-slate-400">{t('dashboard.email')}</span>
-          <span className="break-words font-medium text-slate-900">
-            {user?.email || '—'}
-          </span>
-        </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-4">
+        <span className="text-slate-400">{t('dashboard.email')}</span>
+        <span className="break-words text-right font-semibold text-slate-900">
+          {user?.email || '—'}
+        </span>
+      </div>
 
-        <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-3">
-          <span className="text-slate-400">{t('dashboard.phone')}</span>
-          <span className="font-medium text-slate-900">
-            {user?.phone || '—'}
-          </span>
-        </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-4">
+        <span className="text-slate-400">{t('dashboard.phone')}</span>
+        <span className="break-words text-right font-semibold text-slate-900">
+          {user?.phone || '—'}
+        </span>
+      </div>
 
-        <div className="grid grid-cols-[130px_minmax(0,1fr)] gap-3">
-          <span className="text-slate-400">
-            {user?.studentProfile
-              ? t('dashboard.groupCourse')
-              : t('dashboard.position')}
-          </span>
-          <span className="font-medium text-slate-900">{thirdRowValue}</span>
-        </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-4">
+        <span className="text-slate-400">
+          {user?.studentProfile
+            ? t('dashboard.groupCourse')
+            : t('dashboard.position')}
+        </span>
+        <span className="break-words text-right font-semibold text-slate-900">
+          {thirdRowValue}
+        </span>
       </div>
     </div>
   );
