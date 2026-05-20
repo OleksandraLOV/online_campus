@@ -12,7 +12,7 @@ export default function LanguageSwitcher({
   const { i18n, t } = useTranslation();
 
   const baseBtn =
-    'flex h-14 min-w-[56px] items-center justify-center rounded-full border px-4 text-sm font-medium transition';
+    'flex h-10 min-w-[42px] items-center justify-center rounded-full border px-2 text-sm font-medium transition';
   const activeBtn = 'border-blue-700 bg-blue-700 text-white';
   const inactiveBtn =
     'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400';

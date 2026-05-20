@@ -37,7 +37,7 @@ export default function NotificationsBell() {
   return (
     <Link
       to="/notifications"
-      className="relative flex h-14 w-14 items-center justify-center rounded-full border border-gray-300 bg-white transition hover:bg-gray-50 hover:border-gray-400">
+      className="relative flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-white transition hover:bg-gray-50 hover:border-gray-400">
       <Bell className="h-5 w-5 text-gray-700" />
 
       {unreadCount > 0 && (

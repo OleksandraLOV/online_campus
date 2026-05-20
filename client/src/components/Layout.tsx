@@ -46,7 +46,7 @@ const NAV_ITEMS: {
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const { user, logout, loadProfile, isAuthenticated } = useAuthStore();
 
@@ -93,13 +93,14 @@ export default function Layout() {
   }, [location.pathname, t]);
 
   const currentDate = useMemo(() => {
-    return new Intl.DateTimeFormat('uk-UA', {
+    const locale = i18n.language.startsWith('en') ? 'en-US' : 'uk-UA';
+    return new Intl.DateTimeFormat(locale, {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     }).format(new Date());
-  }, []);
+  }, [i18n.language]);
 
   return (
     <div className="min-h-screen bg-[#f3f6fb]">
@@ -201,8 +202,8 @@ export default function Layout() {
       </aside>
 
       <div className="min-h-screen lg:pl-[280px]">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur sm:px-6 sm:py-4">
+          <div className="flex flex-wrap items-start gap-3 sm:items-center">
             <button
               type="button"
               onClick={() => setSidebarOpen((prev) => !prev)}
@@ -210,22 +211,22 @@ export default function Layout() {
               ☰
             </button>
 
-            <div className="min-w-0">
-              <h2 className="truncate text-2xl font-bold tracking-tight text-slate-900">
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                 {pageTitle}
               </h2>
-              <p className="mt-1 text-sm text-slate-500 capitalize">
+              <p className="mt-1 text-xs text-slate-500 capitalize sm:text-sm">
                 {currentDate}
               </p>
             </div>
 
-            <div className="ml-auto flex items-center gap-3">
+            <div className="ml-auto flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:gap-3">
               <LanguageSwitcher />
 
               {user && (
                 <Link
                   to="/profile"
-                  className="hidden sm:flex h-14 items-center rounded-full border border-slate-200 bg-white px-6 text-sm font-medium text-slate-900 transition hover:bg-slate-50 hover:border-slate-300">
+                  className="hidden md:flex h-12 items-center rounded-full border border-slate-200 bg-white px-5 text-sm font-medium text-slate-900 transition hover:bg-slate-50 hover:border-slate-300">
                   {user.lastName} {user.firstName}
                 </Link>
               )}

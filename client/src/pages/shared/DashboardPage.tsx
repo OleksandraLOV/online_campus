@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import api from '../../services/api';
+import { useTranslation } from 'react-i18next';
 import ProfileSummaryCard from '../../components/dashboard/ProfileSummaryCard';
 import PerformanceCard from '../../components/dashboard/PerformanceCard';
 import TodayScheduleCard from '../../components/dashboard/TodayScheduleCard';
@@ -46,7 +47,7 @@ function normalizeArray<T>(value: unknown): T[] {
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
-
+  const { t } = useTranslation();
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,10 +107,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-          Вітаємо, {greetingName}!
+          {t('dashboard.welcome', { name: greetingName })}
         </h1>
         <p className="mt-2 text-base text-slate-500">
-          Сьогоднішній огляд вашого кабінету
+          {t('dashboard.overview')}
         </p>
       </div>
 
