@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,
+  IsIn,
   IsMongoId,
   IsOptional,
   IsString,
@@ -31,10 +32,18 @@ export class CreateNotificationDto {
   @IsEnum(NotificationType)
   type: NotificationType;
 
-  @ApiPropertyOptional({
-    description: 'Target user id. Empty means broadcast.',
-  })
+  @ApiPropertyOptional({ description: 'Target user id. Empty means broadcast.' })
   @IsOptional()
   @IsMongoId()
   userId?: string;
+
+  @ApiPropertyOptional({ enum: ['all', 'group'] })
+  @IsOptional()
+  @IsIn(['all', 'group'])
+  targetType?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsMongoId()
+  groupId?: string;
 }

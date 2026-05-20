@@ -27,11 +27,28 @@ export class Notification {
   })
   type: string;
 
+  @Prop({
+    required: true,
+    enum: ['all', 'group'],
+    default: 'all',
+  })
+  targetType: string;
+
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'Group',
+    default: null,
+  })
+  groupId: Types.ObjectId | null;
+
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
   readBy: Types.ObjectId[];
 
   @Prop({ default: false })
   important: boolean;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+  dismissedBy: Types.ObjectId[];
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

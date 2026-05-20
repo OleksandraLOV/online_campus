@@ -67,7 +67,7 @@ export class NotificationsController {
   }
 
   @Delete()
-  deleteAll(@Request() req: AuthenticatedRequest) {
-    return this.notificationsService.deleteAll(req.user.sub);
+  dismissAll(@Request() req: AuthenticatedRequest) {
+    return this.notificationsService.dismissAll(req.user.sub);
   }
 }
