@@ -203,24 +203,24 @@ export default function Layout() {
 
       <div className="min-h-screen lg:pl-[280px]">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur sm:px-6 sm:py-4">
-          <div className="flex flex-wrap items-start gap-3 sm:items-center">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen((prev) => !prev)}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-xl text-slate-700 transition hover:bg-slate-50 lg:hidden">
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-xl text-slate-700 transition hover:bg-slate-50 sm:h-12 sm:w-12 lg:hidden">
               ☰
             </button>
 
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+              <h2 className="truncate text-lg font-bold tracking-tight text-slate-900 sm:text-2xl">
                 {pageTitle}
               </h2>
-              <p className="mt-1 text-xs text-slate-500 capitalize sm:text-sm">
+              <p className="mt-1 truncate text-[11px] text-slate-500 capitalize sm:text-sm">
                 {currentDate}
               </p>
             </div>
 
-            <div className="ml-auto flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:gap-3">
+            <div className="ml-auto flex shrink-0 items-center justify-end gap-2 sm:gap-3">
               <LanguageSwitcher />
 
               {user && (
