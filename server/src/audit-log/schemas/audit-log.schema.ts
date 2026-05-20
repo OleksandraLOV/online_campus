@@ -47,3 +47,7 @@ export const AuditLogSchema = SchemaFactory.createForClass(AuditLog);
 AuditLogSchema.index({ timestamp: -1 });
 AuditLogSchema.index({ action: 1, timestamp: -1 });
 AuditLogSchema.index({ userId: 1, timestamp: -1 });
+AuditLogSchema.index({ userLogin: 1, timestamp: -1 });
+AuditLogSchema.index({ result: 1, timestamp: -1 });
+AuditLogSchema.index({ userRole: 1, timestamp: -1 });
+AuditLogSchema.index({ targetEntity: 1, timestamp: -1 });

@@ -174,6 +174,26 @@ export interface Notification {
   readFlag: boolean;
 }
 
+export type AuditLogResult = 'success' | 'failure';
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  userId: string | null;
+  userLogin: string;
+  userRole?: Role;
+  action: string;
+  targetEntity?: string;
+  targetId?: string;
+  details?: Record<string, unknown>;
+  ipAddress: string;
+  userAgent: string;
+  result: AuditLogResult;
+  requestId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Material {
   id: string;
   courseAssignmentId: string;
