@@ -81,7 +81,39 @@ export interface CourseAssignment {
   courseCode?: string;
   credits?: number;
   teacherName?: string;
+  teacher?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    middleName?: string;
+    avatarUrl?: string;
+  };
   groupCode?: string;
+}
+
+export interface PaginatedResponse<T> {
+  docs: T[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface FileDto {
+  id: string;
+  originalName: string;
+  mimetype: string;
+  size: number;
+}
+
+export interface Material {
+  id: string;
+  title: string;
+  description?: string;
+  files: FileDto[];
+  publishDate: string;
 }
 
 export interface Assignment {
@@ -89,16 +121,30 @@ export interface Assignment {
   courseAssignmentId: string;
   title: string;
   description: string;
+  files: FileDto[];
   dueDate: string;
   maxScore: number;
   courseName?: string;
   submission?: {
     id: string;
+    assignmentId: string;
+    studentId: string;
+    files: FileDto[];
+    submittedAt: string;
     status: string;
     score?: number;
     comment?: string;
-    submittedAt: string;
+    fileLink: string;
+    originalName: string;
   } | null;
+}
+
+export interface StudentCourse {
+  courseAssignmentId: string;
+  courseName: string;
+  courseCode: string;
+  academicYear: string;
+  semester: number;
 }
 
 export interface Grade {
@@ -113,6 +159,12 @@ export interface Grade {
   courseCode?: string;
 }
 
+export interface GradeJournalResponse {
+  studentId: string;
+  studentName: string;
+  grades: Grade[];
+}
+
 export interface Notification {
   id: string;
   type: string;
@@ -120,4 +172,46 @@ export interface Notification {
   message: string;
   createdAt: string;
   readFlag: boolean;
+}
+
+export type AuditLogResult = 'success' | 'failure';
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  userId: string | null;
+  userLogin: string;
+  userRole?: Role;
+  action: string;
+  targetEntity?: string;
+  targetId?: string;
+  details?: Record<string, unknown>;
+  ipAddress: string;
+  userAgent: string;
+  result: AuditLogResult;
+  requestId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Material {
+  id: string;
+  courseAssignmentId: string;
+  title: string;
+  description?: string;
+  fileLink: string;
+  originalName: string;
+  publishDate: string;
+}
+
+export interface Submission {
+  id: string;
+  assignmentId: string;
+  studentId: string;
+  submittedAt: string;
+  fileLink: string;
+  originalName: string;
+  score?: number;
+  comment?: string;
+  status: 'submitted' | 'graded' | 'returned';
 }

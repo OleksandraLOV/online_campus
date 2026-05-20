@@ -29,12 +29,29 @@ export class NotificationsService {
     });
   }
 
+  async createMany(items: CreateNotificationDto[]) {
+    if (items.length === 0) {
+      return [];
+    }
+
+    return this.notificationModel.insertMany(
+      items.map((data) => ({
+        title: data.title,
+        message: data.message,
+        type: data.type,
+        userId: data.userId ? new Types.ObjectId(data.userId) : null,
+      })),
+      { ordered: false },
+    );
+  }
+
   async findByUser(userId: string) {
     const userObjId = this.toObjectId(userId);
 
     const notifications = await this.notificationModel
       .find({
         $or: [{ userId: userObjId }, { userId: null }],
+        dismissedBy: { $nin: [userObjId] },
       })
       .sort({ createdAt: -1 });
 
@@ -50,6 +67,7 @@ export class NotificationsService {
     return this.notificationModel.countDocuments({
       $or: [{ userId: userObjId }, { userId: null }],
       readBy: { $nin: [userObjId] },
+      dismissedBy: { $nin: [userObjId] },
     });
   }
 
@@ -80,7 +98,8 @@ export class NotificationsService {
     return { success: true };
   }
 
-  async delete(id: string, userId: string, role: Role) {
+  async delete(id: string, userId: string, _role?: Role) {
+    const userObjId = this.toObjectId(userId);
     const notification = await this.notificationModel.findById(
       this.toObjectId(id),
     );
@@ -89,29 +108,26 @@ export class NotificationsService {
       throw new NotFoundException('Сповіщення не знайдено');
     }
 
-    if (notification.userId === null && role !== Role.ADMIN) {
-      throw new ForbiddenException(
-        'Немає прав для видалення глобального сповіщення',
-      );
-    }
+    await this.notificationModel.findByIdAndUpdate(
+      this.toObjectId(id),
+      { $addToSet: { dismissedBy: userObjId } },
+    );
 
-    if (
-      notification.userId !== null &&
-      notification.userId.toString() !== userId &&
-      role !== Role.ADMIN
-    ) {
-      throw new ForbiddenException('Немає прав для видалення цього сповіщення');
-    }
-
-    await notification.deleteOne();
     return { success: true };
   }
 
-  async deleteAll(userId: string) {
+  async dismissAll(userId: string) {
     const userObjId = this.toObjectId(userId);
-    return this.notificationModel.deleteMany({
-      userId: userObjId,
-    });
+
+    await this.notificationModel.updateMany(
+      {
+        $or: [{ userId: userObjId }, { userId: null }],
+        dismissedBy: { $nin: [userObjId] },
+      },
+      { $addToSet: { dismissedBy: userObjId } },
+    );
+
+    return { success: true };
   }
 
   private toObjectId(id: string): Types.ObjectId {

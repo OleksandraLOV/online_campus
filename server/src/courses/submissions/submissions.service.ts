@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ForbiddenException,
   ConflictException,
 } from '@nestjs/common';
@@ -61,10 +60,11 @@ export class SubmissionsService {
     if (!assignment) {
       throw new NotFoundException('Завдання не знайдено');
     }
-
-    if (new Date() > assignment.dueDate) {
-      throw new BadRequestException('Термін здачі завдання минув');
-    }
+    // блокує завантаження після дедлайну, розкоментувати за потребою.
+    // import { BadRequestException } from '@nestjs/common';
+    // if (new Date() > assignment.dueDate) {
+    //   throw new BadRequestException('Термін здачі завдання минув');
+    // }
 
     const user = await this.userModel
       .findById(studentId)
@@ -103,5 +103,19 @@ export class SubmissionsService {
 
     const populated = await saved.populate('files');
     return transformToDto(SubmissionDto, populated.toObject());
+  }
+  async removeSubmission(assignmentId: string, studentId: string) {
+    const filter: Record<string, unknown> = {
+      assignment: new Types.ObjectId(assignmentId),
+      student: new Types.ObjectId(studentId),
+    };
+
+    const existing = await this.submissionModel.findOne(filter).exec();
+    if (!existing) {
+      throw new NotFoundException('Здану роботу не знайдено');
+    }
+
+    await this.submissionModel.deleteOne(filter).exec();
+    return { success: true };
   }
 }

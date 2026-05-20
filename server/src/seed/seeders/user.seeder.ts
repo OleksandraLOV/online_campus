@@ -17,6 +17,12 @@ export class UserSeeder {
   ) {}
 
   async seed(): Promise<void> {
+    const count = await this.userModel.countDocuments();
+    if (count > 0) {
+      this.logger.log('Users already exist. Skipping seeding.');
+      return;
+    }
+
     const data = users.map((user) => {
       const studentProfile = studentProfiles.find((p) => p.userId === user.id);
       const teacherProfile = teacherProfiles.find((p) => p.userId === user.id);

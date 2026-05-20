@@ -97,6 +97,7 @@ export class ReferencesController {
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @ApiResponse({ status: 204, description: 'Group successfully deleted.' })
+  @ApiResponse({ status: 409, description: 'Group is in use.' })
   removeGroup(@Param('id') id: string) {
     return this.groupsService.remove(id);
   }
@@ -117,6 +118,12 @@ export class ReferencesController {
       query.building = building;
     }
     return this.classroomsService.findAll(query);
+  }
+
+  @Get('classrooms/:id')
+  @ApiResponse({ status: 200, type: ClassroomDto })
+  getClassroomById(@Param('id') id: string) {
+    return this.classroomsService.findById(id);
   }
 
   @Post('classrooms')
@@ -151,6 +158,7 @@ export class ReferencesController {
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @ApiResponse({ status: 204, description: 'Classroom successfully deleted.' })
+  @ApiResponse({ status: 409, description: 'Classroom is in use.' })
   removeClassroom(@Param('id') id: string) {
     return this.classroomsService.remove(id);
   }
@@ -199,6 +207,7 @@ export class ReferencesController {
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @ApiResponse({ status: 204, description: 'Department successfully deleted.' })
+  @ApiResponse({ status: 409, description: 'Department is in use.' })
   removeDepartment(@Param('id') id: string) {
     return this.departmentsService.remove(id);
   }
@@ -207,6 +216,12 @@ export class ReferencesController {
   @ApiResponse({ status: 200, type: [FacultyDto] })
   getFaculties() {
     return this.facultiesService.findAll();
+  }
+
+  @Get('faculties/:id')
+  @ApiResponse({ status: 200, type: FacultyDto })
+  getFacultyById(@Param('id') id: string) {
+    return this.facultiesService.findById(id);
   }
 
   @Post('faculties')
@@ -241,6 +256,7 @@ export class ReferencesController {
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @ApiResponse({ status: 204, description: 'Faculty successfully deleted.' })
+  @ApiResponse({ status: 409, description: 'Faculty is in use.' })
   removeFaculty(@Param('id') id: string) {
     return this.facultiesService.remove(id);
   }
@@ -249,6 +265,12 @@ export class ReferencesController {
   @ApiResponse({ status: 200, type: [SpecialtyDto] })
   getSpecialties() {
     return this.specialtiesService.findAll();
+  }
+
+  @Get('specialties/:id')
+  @ApiResponse({ status: 200, type: SpecialtyDto })
+  getSpecialtyById(@Param('id') id: string) {
+    return this.specialtiesService.findById(id);
   }
 
   @Post('specialties')
@@ -283,6 +305,7 @@ export class ReferencesController {
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @ApiResponse({ status: 204, description: 'Specialty successfully deleted.' })
+  @ApiResponse({ status: 409, description: 'Specialty is in use.' })
   removeSpecialty(@Param('id') id: string) {
     return this.specialtiesService.remove(id);
   }

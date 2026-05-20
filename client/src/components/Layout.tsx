@@ -44,6 +44,11 @@ const NAV_ITEMS: {
     path: '/users',
     roles: [Role.ADMIN, Role.PRESIDENT, Role.RECTOR, Role.DEAN],
   },
+  {
+    labelKey: 'nav.auditLog',
+    path: '/audit-log',
+    roles: [Role.ADMIN],
+  },
 ];
 
 export default function Layout() {

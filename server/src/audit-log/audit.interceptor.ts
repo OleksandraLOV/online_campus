@@ -12,6 +12,7 @@ import { RequestWithId } from '../common/middleware/request-id.middleware';
 interface JwtUser {
   sub: string;
   login: string;
+  role?: string;
 }
 
 interface AuthenticatedRequest extends RequestWithId {
@@ -32,6 +33,7 @@ export class AuditInterceptor implements NestInterceptor {
     const url = request.url;
     const action = `${method} ${url}`;
     const requestId = request.requestId;
+    const auditTarget = resolveAuditTarget(request.path || url);
 
     return next.handle().pipe(
       tap(() => {
@@ -39,7 +41,9 @@ export class AuditInterceptor implements NestInterceptor {
           this.auditLogService.logAction({
             userId: user?.sub || null,
             userLogin: user?.login || 'Guest',
+            userRole: user?.role,
             action,
+            ...auditTarget,
             ipAddress: ip,
             userAgent,
             result: 'success',
@@ -55,7 +59,9 @@ export class AuditInterceptor implements NestInterceptor {
           this.auditLogService.logAction({
             userId: user?.sub || null,
             userLogin: user?.login || 'Guest',
+            userRole: user?.role,
             action,
+            ...auditTarget,
             ipAddress: ip,
             userAgent,
             result: 'failure',
@@ -66,4 +72,21 @@ export class AuditInterceptor implements NestInterceptor {
       }),
     );
   }
+}
+
+function resolveAuditTarget(path: string): {
+  targetEntity?: string;
+  targetId?: string;
+} {
+  const [pathname] = path.split('?');
+  const [targetEntity, maybeTargetId] = pathname
+    .replace(/^\/api\//, '')
+    .replace(/^\//, '')
+    .split('/')
+    .filter(Boolean);
+
+  return {
+    targetEntity,
+    targetId: /^[a-f\d]{24}$/i.test(maybeTargetId) ? maybeTargetId : undefined,
+  };
 }

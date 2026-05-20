@@ -10,6 +10,7 @@ import { SubmissionsController } from './submissions/submissions.controller';
 import { SubmissionsService } from './submissions/submissions.service';
 import { GradesController } from './grades/grades.controller';
 import { GradesService } from './grades/grades.service';
+import { FilesModule } from '../files/files.module';
 import { User, UserSchema } from '../users/schemas';
 import {
   Course,
@@ -28,6 +29,7 @@ import {
 
 @Module({
   imports: [
+    FilesModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Course.name, schema: CourseSchema },

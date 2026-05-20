@@ -1,7 +1,4 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from '../users/schemas';
 import {
   UserSeeder,
   FacultySeeder,
@@ -11,6 +8,10 @@ import {
   ClassroomSeeder,
   CourseSeeder,
   CourseAssignmentSeeder,
+  ScheduleEntrySeeder,
+  GradeSeeder,
+  AssignmentSeeder,
+  MaterialSeeder,
 } from './seeders';
 
 @Injectable()
@@ -18,7 +19,6 @@ export class SeedService implements OnModuleInit {
   private readonly logger = new Logger(SeedService.name);
 
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly userSeeder: UserSeeder,
     private readonly facultySeeder: FacultySeeder,
     private readonly departmentSeeder: DepartmentSeeder,
@@ -27,6 +27,10 @@ export class SeedService implements OnModuleInit {
     private readonly groupSeeder: GroupSeeder,
     private readonly courseSeeder: CourseSeeder,
     private readonly courseAssignmentSeeder: CourseAssignmentSeeder,
+    private readonly scheduleEntrySeeder: ScheduleEntrySeeder,
+    private readonly gradeSeeder: GradeSeeder,
+    private readonly assignmentSeeder: AssignmentSeeder,
+    private readonly materialSeeder: MaterialSeeder,
   ) {}
 
   async onModuleInit() {
@@ -35,13 +39,7 @@ export class SeedService implements OnModuleInit {
   }
 
   private async seed() {
-    const userCount = await this.userModel.countDocuments();
-    if (userCount > 0) {
-      this.logger.log('Database is not empty. Skipping seed.');
-      return;
-    }
-
-    this.logger.log('Database is empty. Seeding data...');
+    this.logger.log('Starting seeding process...');
 
     try {
       await this.userSeeder.seed();
@@ -52,8 +50,12 @@ export class SeedService implements OnModuleInit {
       await this.groupSeeder.seed();
       await this.courseSeeder.seed();
       await this.courseAssignmentSeeder.seed();
+      await this.scheduleEntrySeeder.seed();
+      await this.gradeSeeder.seed();
+      await this.assignmentSeeder.seed();
+      await this.materialSeeder.seed();
 
-      this.logger.log('Seeding completed successfully.');
+      this.logger.log('Seeding process completed.');
     } catch (error) {
       this.logger.error('Error during seeding:', error);
     }

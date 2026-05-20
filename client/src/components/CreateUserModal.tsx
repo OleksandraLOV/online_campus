@@ -98,8 +98,8 @@ function buildInitialFormData(userToEdit?: UserProfile | null): UserFormData {
 export default function CreateUserModal({ isOpen, onClose, onSuccess, userToEdit }: Props) {
   const { t } = useTranslation();
 
-  const [formData, setFormData] = useState<UserFormData>(
-    buildInitialFormData(),
+  const [formData, setFormData] = useState<UserFormData>(() =>
+    buildInitialFormData(userToEdit),
   );
 
   const [groups, setGroups] = useState<ReferenceItem[]>([]);
@@ -116,12 +116,6 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, userToEdit
     if (!PASSWORD_REGEX.test(pwd)) return 'Пароль має містити лише англійські літери та цифри (мінімум одна літера і одна цифра)';
     return '';
   };
-
-  useEffect(() => {
-    if (isOpen) {
-      setFormData(buildInitialFormData(userToEdit));
-    }
-  }, [isOpen, userToEdit]);
 
   useEffect(() => {
     if (!isOpen) return;
