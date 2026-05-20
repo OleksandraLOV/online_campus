@@ -1,4 +1,4 @@
-import { Module, Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CoursesController } from './courses/courses.controller';
 import { CoursesService } from './courses/courses.service';
@@ -26,7 +26,6 @@ import {
   Grade,
   GradeSchema,
 } from './schemas';
-
 
 @Module({
   imports: [

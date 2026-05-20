@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ForbiddenException,
   ConflictException,
 } from '@nestjs/common';
@@ -62,6 +61,7 @@ export class SubmissionsService {
       throw new NotFoundException('Завдання не знайдено');
     }
     // блокує завантаження після дедлайну, розкоментувати за потребою.
+    // import { BadRequestException } from '@nestjs/common';
     // if (new Date() > assignment.dueDate) {
     //   throw new BadRequestException('Термін здачі завдання минув');
     // }
@@ -109,7 +109,7 @@ export class SubmissionsService {
       assignment: new Types.ObjectId(assignmentId),
       student: new Types.ObjectId(studentId),
     };
-    
+
     const existing = await this.submissionModel.findOne(filter).exec();
     if (!existing) {
       throw new NotFoundException('Здану роботу не знайдено');

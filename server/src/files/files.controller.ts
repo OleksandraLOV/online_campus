@@ -1,4 +1,18 @@
-import {Controller,Post,Delete,UseInterceptors,UploadedFile,ParseFilePipe,MaxFileSizeValidator,FileTypeValidator,UseGuards,Req,Get,Param,Res,NotFoundException,}from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  UseGuards,
+  Req,
+  Get,
+  Param,
+  Res,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as path from 'path';
