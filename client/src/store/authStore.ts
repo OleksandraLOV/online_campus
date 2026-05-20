@@ -13,6 +13,7 @@ interface AuthState {
   logout: () => void;
   loadProfile: () => Promise<void>;
   initializeAuth: () => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<string>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -34,14 +35,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (err: unknown) {
       const status = axios.isAxiosError(err) ? err.response?.status : undefined;
 
+      const message =
+        status === 401
+          ? 'Неправильний логін або пароль'
+          : status === 403
+            ? 'Обліковий запис заблоковано. Зверніться до адміністратора.'
+            : 'Помилка входу. Спробуйте ще раз.';
+
       set({
-        error:
-          status === 401
-            ? 'Неправильний логін або пароль'
-            : 'Помилка входу',
+        error: message,
         isLoading: false,
         isAuthChecked: true,
       });
+
+      throw err;
     }
   },
 
@@ -64,6 +71,31 @@ export const useAuthStore = create<AuthState>((set) => ({
       user: data,
       isAuthenticated: true,
     });
+  },
+
+  changePassword: async (oldPassword: string, newPassword: string) => {
+    try {
+      const { data } = await api.post('/auth/change-password', {
+        oldPassword,
+        newPassword,
+      });
+
+      return data.message || 'Пароль успішно змінено';
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const message = err.response?.data?.message;
+
+        if (Array.isArray(message)) {
+          throw new Error(message.join(', '));
+        }
+
+        if (typeof message === 'string') {
+          throw new Error(message);
+        }
+      }
+
+      throw new Error('Не вдалося змінити пароль');
+    }
   },
 
   initializeAuth: async () => {

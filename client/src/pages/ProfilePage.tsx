@@ -2,10 +2,54 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { ROLE_LABEL_KEYS } from '../types';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import {
+  changePasswordSchema,
+  type ChangePasswordFormData,
+} from '../schemas/authSchema';
 
 export default function ProfilePage() {
   const { t } = useTranslation();
   const { user, loadProfile, isAuthenticated } = useAuthStore();
+  const { changePassword } = useAuthStore();
+
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ChangePasswordFormData>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: {
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
+
+  const onChangePassword = async (values: ChangePasswordFormData) => {
+    setPasswordSuccess(null);
+    setPasswordError(null);
+
+    try {
+      const message = await changePassword(
+        values.oldPassword,
+        values.newPassword,
+      );
+      setPasswordSuccess(message);
+      reset();
+    } catch (err) {
+      setPasswordError(
+        err instanceof Error ? err.message : 'Не вдалося змінити пароль',
+      );
+    }
+  };
 
   useEffect(() => {
     if (!user && isAuthenticated && localStorage.getItem('accessToken')) {
@@ -126,7 +170,7 @@ export default function ProfilePage() {
                   {t('profile.groupId')}:
                 </span>{' '}
                 <span className="text-gray-600">
-                  {user.studentProfile.groupId || '—'}
+                  {user.studentProfile.group || '—'}
                 </span>
               </div>
             </div>
@@ -154,12 +198,86 @@ export default function ProfilePage() {
                   {t('profile.departmentId')}:
                 </span>{' '}
                 <span className="text-gray-600">
-                  {user.teacherProfile.departmentId || '—'}
+                  {user.teacherProfile.department || '—'}
                 </span>
               </div>
             </div>
           </div>
         )}
+      </div>
+      <div className="rounded-2xl bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          Зміна пароля
+        </h2>
+
+        <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Поточний пароль
+            </label>
+            <input
+              type="password"
+              {...register('oldPassword')}
+              className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+            />
+            {errors.oldPassword && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.oldPassword.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Новий пароль
+            </label>
+            <input
+              type="password"
+              {...register('newPassword')}
+              className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+            />
+            {errors.newPassword && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.newPassword.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Повторіть новий пароль
+            </label>
+            <input
+              type="password"
+              {...register('confirmPassword')}
+              className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+            />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          {passwordError && (
+            <p className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-700">
+              {passwordError}
+            </p>
+          )}
+
+          {passwordSuccess && (
+            <p className="rounded-xl bg-green-50 px-4 py-2 text-sm text-green-700">
+              {passwordSuccess}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-xl bg-blue-700 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60">
+            {isSubmitting ? 'Зміна пароля...' : 'Змінити пароль'}
+          </button>
+        </form>
       </div>
     </div>
   );

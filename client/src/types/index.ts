@@ -44,14 +44,16 @@ export interface User {
   avatarUrl?: string;
   status: 'active' | 'blocked';
   studentProfile?: {
-    groupId: string;
+    group: string | null;
     recordBookNumber: string;
     year: number;
   };
   teacherProfile?: {
-    departmentId: string;
+    department: string | null;
     position: string;
   };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ScheduleEntry {
