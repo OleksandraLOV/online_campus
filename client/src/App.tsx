@@ -10,6 +10,7 @@ import AssignmentsPage from './pages/student/AssignmentsPage';
 import GradesPage from './pages/student/GradesPage';
 import NotificationsPage from './pages/shared/NotificationsPage';
 import UsersPage from './pages/admin/UsersPage';
+import AuditLogPage from './pages/admin/AuditLogPage';
 import { Role } from './types';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 
@@ -34,6 +35,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={[Role.ADMIN, Role.PRESIDENT, Role.RECTOR, Role.DEAN]}>
                 <UsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="audit-log"
+            element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+                <AuditLogPage />
               </ProtectedRoute>
             }
           />
