@@ -115,7 +115,9 @@ const handleDeleteMaterial = async (e: React.MouseEvent, fileId: string | undefi
               return (
                 <li key={m.id} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg mb-2">
                   <button 
-                    onClick={() => fileId && handleDownload(fileId, fileName)}
+                    onClick={(event) =>
+                      fileId && handleDownload(event, fileId, fileName)
+                    }
                     className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 text-left"
                   >
                     {m.title} <span className="text-gray-500 text-xs">({fileName})</span>
@@ -123,7 +125,9 @@ const handleDeleteMaterial = async (e: React.MouseEvent, fileId: string | undefi
                   
                   {isTeacher && (
                     <button
-                      onClick={() => handleDeleteMaterial(fileId, m.id)}
+                      onClick={(event) =>
+                        handleDeleteMaterial(event, fileId, m.id)
+                      }
                       className="text-xs font-medium text-red-600 bg-red-100 hover:bg-red-200 px-2.5 py-1.5 rounded transition-colors"
                       title="Видалити матеріал"
                     >
