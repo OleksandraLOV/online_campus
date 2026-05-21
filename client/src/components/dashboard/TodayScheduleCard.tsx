@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
 import type { ScheduleItem } from '../../pages/shared/DashboardPage';
-import emptyScheduleImage from '../../assets/Notebook-pana.svg';
 
 type Props = {
   items: ScheduleItem[];
@@ -56,7 +55,7 @@ export default function TodayScheduleCard({ items, isLoading }: Props) {
           </div>
 
           <img
-            src={emptyScheduleImage}
+            src="/Notebook-pana.svg"
             alt=""
             className="hidden h-40 w-auto shrink-0 object-contain lg:block"
             aria-hidden="true"
