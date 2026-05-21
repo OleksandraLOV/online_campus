@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Req,
+  HttpCode,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -13,6 +21,8 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
+import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { RequestWithId } from '../common/middleware/request-id.middleware';
 
@@ -39,6 +49,52 @@ export class AuthController {
     return this.authService.login(
       body.login,
       body.password,
+      ip,
+      userAgent,
+      req.requestId,
+    );
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 900000 } })
+  @Post('password-reset/request')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Request password reset token' })
+  @ApiBody({ type: RequestPasswordResetDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Generic password reset instructions response',
+  })
+  @ApiResponse({ status: 429, description: 'Too Many Requests' })
+  requestPasswordReset(
+    @Body() body: RequestPasswordResetDto,
+    @Req() req: RequestWithId,
+  ) {
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const userAgent = req.get('user-agent') || 'unknown';
+    return this.authService.requestPasswordReset(
+      body,
+      ip,
+      userAgent,
+      req.requestId,
+    );
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 900000 } })
+  @Post('password-reset/confirm')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Confirm password reset with token' })
+  @ApiBody({ type: ConfirmPasswordResetDto })
+  @ApiResponse({ status: 200, description: 'Password reset completed' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired reset token' })
+  @ApiResponse({ status: 429, description: 'Too Many Requests' })
+  confirmPasswordReset(
+    @Body() body: ConfirmPasswordResetDto,
+    @Req() req: RequestWithId,
+  ) {
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const userAgent = req.get('user-agent') || 'unknown';
+    return this.authService.confirmPasswordReset(
+      body,
       ip,
       userAgent,
       req.requestId,
