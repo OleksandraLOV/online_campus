@@ -28,7 +28,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUpload, allowedTyp
       await onUpload(file);
       setFile(null);
       alert('Завантажено успішно!');
-    } catch (error) {
+    } catch {
       alert('Помилка при завантаженні');
     } finally {
       setLoading(false);

@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { filesApi } from '../../services/api';
 import type { CourseAssignment, Material, PaginatedResponse  } from '../../types';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { FileUploader } from '../../components/FileUploader';
 import {useAuthStore} from '../../store/authStore';
 
@@ -16,7 +17,7 @@ import {useAuthStore} from '../../store/authStore';
     return '';
   };
   
-function CourseCard({ ca, role, t }: { ca: CourseAssignment; role?: string; t: any }) {
+function CourseCard({ ca, role, t }: { ca: CourseAssignment; role?: string; t: TFunction }) {
   const [title, setTitle] = useState('');
 
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -63,7 +64,7 @@ const handleDeleteMaterial = async (fileId: string | undefined, materialId: stri
       if (fileId) {
         try {
           await api.delete(`/files/${fileId}`);
-        } catch (fileError) {
+        } catch {
           console.warn('Файл вже видалено або не знайдено на сервері, продовжуємо...');
         }
       }
@@ -97,7 +98,7 @@ const handleDeleteMaterial = async (fileId: string | undefined, materialId: stri
               <div className="mt-2 mb-4">
                 <h4 className="text-sm font-semibold text-gray-700 mb-2">Навчальні матеріали:</h4>
                 <ul className="space-y-3">
-                  {materials.map((m: any) => {
+                  {materials.map((m) => {
                     const file = m.files && m.files.length > 0 ? m.files[0] : null;
                     const fileId = file ? (file.id || file._id) : undefined;
                     const fileName = file ? file.originalName : '';
@@ -151,7 +152,7 @@ const handleDeleteMaterial = async (fileId: string | undefined, materialId: stri
 export default function CoursesPage() {
   const { t } = useTranslation();
   
-  const user = useAuthStore((state: any) => state.user); 
+  const user = useAuthStore((state) => state.user);
 
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ['courses', 'my'],
