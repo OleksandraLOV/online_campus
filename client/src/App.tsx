@@ -13,7 +13,7 @@ import UsersPage from './pages/admin/UsersPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
 import { Role } from './types';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
-import ProfilePage from './pages/ProfilePage';
+import ProfilePage from './pages/shared/ProfilePage';
 import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 

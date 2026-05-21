@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../store/authStore';
-import { ROLE_LABEL_KEYS } from '../types';
+import { useAuthStore } from '../../store/authStore';
+import { ROLE_LABEL_KEYS } from '../../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
@@ -27,7 +27,7 @@ function InfoRow({ label, value }: InfoRowProps) {
 import {
   changePasswordSchema,
   type ChangePasswordFormData,
-} from '../schemas/authSchema';
+} from '../../schemas/authSchema';
 
 export default function ProfilePage() {
   const { t } = useTranslation();
