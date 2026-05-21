@@ -53,6 +53,8 @@ const resources = {
       'dashboard.welcome': 'Вітаємо, {{name}}!',
       'dashboard.overview': 'Сьогоднішній огляд вашого кабінету',
 
+      'dashboard.userFallback': 'користувачу',
+
       'dashboard.profile': 'Профіль',
       'dashboard.role': 'Роль',
       'dashboard.status': 'Статус',
@@ -286,6 +288,8 @@ const resources = {
 
       'dashboard.welcome': 'Welcome, {{name}}!',
       'dashboard.overview': 'Today overview of your account',
+      
+      'dashboard.userFallback': 'user',
 
       'dashboard.profile': 'Profile',
       'dashboard.role': 'Role',

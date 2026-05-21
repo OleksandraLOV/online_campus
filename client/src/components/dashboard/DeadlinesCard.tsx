@@ -29,7 +29,11 @@ export default function DeadlinesCard({ items }: Props) {
       </h3>
 
       {deadlineItems.length === 0 ? (
-        <p className="text-slate-500">{t('dashboard.noDeadlines')}</p>
+        <div className="flex min-h-[110px] items-center rounded-3xl bg-slate-50 px-6 py-5">
+          <p className="text-sm leading-6 text-slate-500">
+            {t('dashboard.noDeadlines')}
+          </p>
+        </div>
       ) : (
         <div className="space-y-4">
           {deadlineItems.map((item, index) => (

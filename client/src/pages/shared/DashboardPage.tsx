@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import api from '../../services/api';
-import { useTranslation } from 'react-i18next';
 import ProfileSummaryCard from '../../components/dashboard/ProfileSummaryCard';
 import PerformanceCard from '../../components/dashboard/PerformanceCard';
 import TodayScheduleCard from '../../components/dashboard/TodayScheduleCard';
@@ -47,7 +46,6 @@ function normalizeArray<T>(value: unknown): T[] {
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
-  const { t } = useTranslation();
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,9 +87,6 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const greetingName =
-    user?.firstName || user?.lastName || user?.login || 'користувачу';
-
   const todaySchedule = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
 
@@ -105,14 +100,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      {/* <div>
         <h1 className="text-4xl font-bold tracking-tight text-slate-900">
           {t('dashboard.welcome', { name: greetingName })}
         </h1>
         <p className="mt-2 text-base text-slate-500">
           {t('dashboard.overview')}
         </p>
-      </div>
+      </div> */}
 
       <div className="grid gap-6 xl:grid-cols-[460px_minmax(0,1fr)]">
         <div className="space-y-6">

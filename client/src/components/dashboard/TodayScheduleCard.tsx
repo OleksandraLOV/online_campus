@@ -32,9 +32,11 @@ export default function TodayScheduleCard({ items, isLoading }: Props) {
           </h3>
 
           <p className="mt-3 text-sm text-slate-500">
-            {items.length > 0
-              ? t('dashboard.lessonsCount', { count: items.length })
-              : t('dashboard.noClassesToday')}
+            {items.length > 0 && (
+              <p className="mt-3 text-sm text-slate-500">
+                {t('dashboard.lessonsCount', { count: items.length })}
+              </p>
+            )}
           </p>
         </div>
       </div>

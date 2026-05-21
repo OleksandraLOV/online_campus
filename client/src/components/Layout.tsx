@@ -92,6 +92,17 @@ export default function Layout() {
     }
   }, [location.pathname, t]);
 
+  const greetingName =
+    user?.firstName ||
+    user?.lastName ||
+    user?.login ||
+    t('dashboard.userFallback');
+
+  const headerTitle =
+    location.pathname === '/dashboard'
+      ? t('dashboard.welcome', { name: greetingName })
+      : pageTitle;
+
   const currentDate = useMemo(() => {
     const locale = i18n.language.startsWith('en') ? 'en-US' : 'uk-UA';
     return new Intl.DateTimeFormat(locale, {
@@ -218,7 +229,7 @@ export default function Layout() {
 
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-lg font-bold tracking-tight text-slate-900 sm:text-2xl">
-                {pageTitle}
+                {headerTitle}
               </h2>
               <p className="mt-1 truncate text-[11px] text-slate-500 capitalize sm:text-sm">
                 {currentDate}
