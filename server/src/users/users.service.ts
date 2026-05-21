@@ -37,6 +37,14 @@ type RoleUpdateOperation = {
   $unset?: Record<string, ''>;
 };
 
+export type PasswordResetCandidate = {
+  id: string;
+  login: string;
+  email: string;
+  role: Role;
+  status: string;
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -114,8 +122,110 @@ export class UsersService {
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
     await this.userModel
-      .updateOne({ _id: id }, { $set: { passwordHash } })
+      .updateOne(
+        { _id: id },
+        {
+          $set: { passwordHash },
+          $unset: {
+            passwordResetTokenHash: '',
+            passwordResetTokenExpiresAt: '',
+          },
+        },
+      )
       .exec();
+  }
+
+  async findPasswordResetCandidate(
+    identifier: string,
+  ): Promise<PasswordResetCandidate | null> {
+    const normalized = identifier.trim();
+    if (!normalized) {
+      return null;
+    }
+
+    const emailCandidate = normalized.toLowerCase();
+    const user = await this.userModel
+      .findOne({
+        $or: [
+          { login: normalized },
+          { email: normalized },
+          { email: emailCandidate },
+        ],
+      })
+      .select('login email role status')
+      .lean()
+      .exec();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: toId(user._id),
+      login: user.login,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    };
+  }
+
+  async setPasswordResetToken(
+    userId: string,
+    tokenHash: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.userModel
+      .updateOne(
+        { _id: userId, status: 'active' },
+        {
+          $set: {
+            passwordResetTokenHash: tokenHash,
+            passwordResetTokenExpiresAt: expiresAt,
+          },
+        },
+      )
+      .exec();
+  }
+
+  async consumePasswordResetToken(
+    tokenHash: string,
+    passwordHash: string,
+    now = new Date(),
+  ): Promise<PasswordResetCandidate | null> {
+    const user = await this.userModel
+      .findOneAndUpdate(
+        {
+          passwordResetTokenHash: tokenHash,
+          passwordResetTokenExpiresAt: { $gt: now },
+          status: 'active',
+        },
+        {
+          $set: {
+            passwordHash,
+            refreshTokenHashes: [],
+          },
+          $unset: {
+            passwordResetTokenHash: '',
+            passwordResetTokenExpiresAt: '',
+          },
+        },
+        { returnDocument: 'after' },
+      )
+      .select('login email role status')
+      .lean()
+      .exec();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: toId(user._id),
+      login: user.login,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    };
   }
 
   // =========================
@@ -220,6 +330,11 @@ export class UsersService {
     }
 
     const unsetData: Record<string, ''> = {};
+    if (password) {
+      unsetData.passwordResetTokenHash = '';
+      unsetData.passwordResetTokenExpiresAt = '';
+    }
+
     const roleChanged = role !== undefined && role !== existingUser.role;
 
     if (roleChanged && actorId === id) {
@@ -278,7 +393,7 @@ export class UsersService {
       throw new NotFoundException('Користувача не знайдено');
     }
 
-    if (roleChanged) {
+    if (roleChanged || password) {
       await this.removeAllRefreshTokenHashes(id);
     }
 
@@ -334,12 +449,22 @@ export class UsersService {
     if (!user) throw new NotFoundException('Користувача не знайдено');
 
     const newStatus = user.status === 'active' ? 'blocked' : 'active';
+    const statusUpdate =
+      newStatus === 'blocked'
+        ? {
+            $set: {
+              status: newStatus,
+              refreshTokenHashes: [],
+            },
+            $unset: {
+              passwordResetTokenHash: '',
+              passwordResetTokenExpiresAt: '',
+            },
+          }
+        : { $set: { status: newStatus } };
+
     const updated = await this.userModel
-      .findByIdAndUpdate(
-        id,
-        { $set: { status: newStatus } },
-        { returnDocument: 'after' },
-      )
+      .findByIdAndUpdate(id, statusUpdate, { returnDocument: 'after' })
       .lean()
       .exec();
 

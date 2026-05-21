@@ -54,6 +54,7 @@
 - Управління навчальними матеріалами, завданнями та оцінками
 - **Система опитувань студентів** — створення, проходження, аналіз результатів
 - Система сповіщень: зміни розкладу, нові завдання, оголошення
+- Відновлення пароля через одноразовий reset token без розкриття існування акаунта
 - Повний RBAC з ієрархією ролей та аудит-логом дій
 
 ---
@@ -91,14 +92,14 @@
 
 ### Шари застосунку
 
-| Шар | Відповідальність |
-|-----|-----------------|
-| **Presentation** | React-компоненти, сторінки, форми |
-| **State** | Zustand stores: auth, notifications |
-| **API Client** | Axios-інстанс з JWT interceptors (auto-refresh) |
-| **Controller** | NestJS controllers — прийом HTTP-запитів, валідація DTO |
-| **Service** | Бізнес-логіка, оркестрація модулів |
-| **Data** | Репозиторії / mock-дані / Mongoose ODM |
+| Шар              | Відповідальність                                        |
+| ---------------- | ------------------------------------------------------- |
+| **Presentation** | React-компоненти, сторінки, форми                       |
+| **State**        | Zustand stores: auth, notifications                     |
+| **API Client**   | Axios-інстанс з JWT interceptors (auto-refresh)         |
+| **Controller**   | NestJS controllers — прийом HTTP-запитів, валідація DTO |
+| **Service**      | Бізнес-логіка, оркестрація модулів                      |
+| **Data**         | Репозиторії / mock-дані / Mongoose ODM                  |
 
 ---
 
@@ -106,43 +107,43 @@
 
 ### Бекенд
 
-| Технологія | Версія | Призначення |
-|-----------|--------|-------------|
-| Node.js | 20 LTS | Runtime |
-| NestJS | 10 | Framework (модулі, DI, guards, pipes) |
-| TypeScript | 5 | Типізація |
-| Passport.js | — | Стратегія JWT-аутентифікації |
-| `@nestjs/jwt` | — | JWT access/refresh tokens |
-| bcryptjs | — | Хешування паролів |
-| class-validator | — | Валідація DTO |
-| Helmet | — | HTTP security headers |
-| Mongoose | — | ODM для MongoDB [Phase 2] |
-| MongoDB | 7 | База даних [Phase 2] |
+| Технологія      | Версія | Призначення                           |
+| --------------- | ------ | ------------------------------------- |
+| Node.js         | 20 LTS | Runtime                               |
+| NestJS          | 10     | Framework (модулі, DI, guards, pipes) |
+| TypeScript      | 5      | Типізація                             |
+| Passport.js     | —      | Стратегія JWT-аутентифікації          |
+| `@nestjs/jwt`   | —      | JWT access/refresh tokens             |
+| bcryptjs        | —      | Хешування паролів                     |
+| class-validator | —      | Валідація DTO                         |
+| Helmet          | —      | HTTP security headers                 |
+| Mongoose        | —      | ODM для MongoDB [Phase 2]             |
+| MongoDB         | 7      | База даних [Phase 2]                  |
 
 ### Фронтенд
 
-| Технологія | Версія | Призначення |
-|-----------|--------|-------------|
-| React | 19 | UI framework |
-| TypeScript | 5 | Типізація |
-| Vite | 5 | Bundler / dev-сервер |
-| Tailwind CSS | 4 | Утилітарні стилі |
-| Zustand | 4 | State management (auth, UI state) |
-| Axios | — | HTTP-клієнт з interceptors |
-| React Router | 6 | Клієнтський роутинг |
-| React Hook Form | 7 | Form state management |
-| Zod | 3 | Schema validation |
-| @hookform/resolvers | — | React Hook Form + Zod integration |
-| Lucide React | — | Icon library |
+| Технологія          | Версія | Призначення                       |
+| ------------------- | ------ | --------------------------------- |
+| React               | 19     | UI framework                      |
+| TypeScript          | 5      | Типізація                         |
+| Vite                | 5      | Bundler / dev-сервер              |
+| Tailwind CSS        | 4      | Утилітарні стилі                  |
+| Zustand             | 4      | State management (auth, UI state) |
+| Axios               | —      | HTTP-клієнт з interceptors        |
+| React Router        | 6      | Клієнтський роутинг               |
+| React Hook Form     | 7      | Form state management             |
+| Zod                 | 3      | Schema validation                 |
+| @hookform/resolvers | —      | React Hook Form + Zod integration |
+| Lucide React        | —      | Icon library                      |
 
 ### Інфраструктура
 
-| Технологія | Призначення |
-|-----------|-------------|
-| Docker | Контейнеризація |
-| Docker Compose | Оркестрація dev-середовища |
-| Nginx | Веб-сервер для prod (серверинг SPA + reverse proxy) |
-| GitHub Actions | CI/CD pipeline |
+| Технологія     | Призначення                                         |
+| -------------- | --------------------------------------------------- |
+| Docker         | Контейнеризація                                     |
+| Docker Compose | Оркестрація dev-середовища                          |
+| Nginx          | Веб-сервер для prod (серверинг SPA + reverse proxy) |
+| GitHub Actions | CI/CD pipeline                                      |
 
 ---
 
@@ -152,24 +153,27 @@
 
 **Файли:** `src/auth/`
 
-**Відповідальність:** аутентифікація, видача та оновлення JWT-токенів, перевірка статусу акаунту.
+**Відповідальність:** аутентифікація, видача та оновлення JWT-токенів, перевірка статусу акаунту, зміна та відновлення пароля.
 
 **Компоненти:**
 
-| Файл | Опис |
-|------|------|
-| `auth.controller.ts` | HTTP-ендпоінти: POST /login, POST /refresh, GET /profile |
-| `auth.service.ts` | Валідація пароля (bcrypt), генерація access/refresh токенів |
-| `jwt.strategy.ts` | Passport JWT стратегія — декодує токен, додає user до request |
-| `jwt-auth.guard.ts` | Guard — перевіряє наявність та валідність access token |
-| `roles.guard.ts` | Guard — перевіряє ролі за декоратором `@Roles()` з урахуванням ієрархії |
+| Файл                 | Опис                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| `auth.controller.ts` | HTTP-ендпоінти: POST /login, POST /refresh, GET /profile, password reset             |
+| `auth.service.ts`    | Валідація пароля (bcrypt), генерація access/refresh токенів, одноразові reset tokens |
+| `jwt.strategy.ts`    | Passport JWT стратегія — декодує токен, додає user до request                        |
+| `jwt-auth.guard.ts`  | Guard — перевіряє наявність та валідність access token                               |
+| `roles.guard.ts`     | Guard — перевіряє ролі за декоратором `@Roles()` з урахуванням ієрархії              |
 
 **Логіка токенів:**
+
 - `accessToken` — дія 15 хв (налаштовується через env)
 - `refreshToken` — дія 7 днів
 - Payload: `{ sub: userId, login, role }`
 - При невірних даних — відповідь без деталей
 - Заблокований акаунт — відмова до перевірки пароля
+- Password reset token генерується криптографічно безпечно, зберігається тільки як SHA-256 hash, має TTL і стає недійсним після використання
+- У production reset token не повертається в API-відповіді; delivery має виконуватися через email provider
 
 ---
 
@@ -181,17 +185,17 @@
 
 **Ендпоінти та доступ:**
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| GET | `/users` | admin, rector, president |
-| GET | `/users/search?q=&role=` | admin, rector, president, dean |
-| GET | `/users/:id` | admin, rector, president, dean |
-| GET | `/users/group/:groupId` | teacher+ |
-| GET | `/users/department/:depId` | department_head+ |
-| POST | `/users` | admin |
-| PATCH | `/users/:id` | admin (часткове оновлення) |
-| PATCH | `/users/:id/block` | admin |
-| PATCH | `/users/:id/role` | admin |
+| Метод | Шлях                       | Доступ                         |
+| ----- | -------------------------- | ------------------------------ |
+| GET   | `/users`                   | admin, rector, president       |
+| GET   | `/users/search?q=&role=`   | admin, rector, president, dean |
+| GET   | `/users/:id`               | admin, rector, president, dean |
+| GET   | `/users/group/:groupId`    | teacher+                       |
+| GET   | `/users/department/:depId` | department_head+               |
+| POST  | `/users`                   | admin                          |
+| PATCH | `/users/:id`               | admin (часткове оновлення)     |
+| PATCH | `/users/:id/block`         | admin                          |
+| PATCH | `/users/:id/role`          | admin                          |
 
 ---
 
@@ -203,19 +207,19 @@
 
 **Ендпоінти та доступ:**
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| GET | `/schedule` | всі авторизовані |
-| GET | `/schedule/my` | всі авторизовані (особистий розклад) |
-| GET | `/schedule/group/:groupId` | teacher+ |
-| GET | `/schedule/teacher/:teacherId` | dispatcher+ |
-| GET | `/schedule/classroom/:classroomId` | dispatcher+ |
-| POST | `/schedule` | dispatcher, admin |
-| PUT | `/schedule/:id` | dispatcher, admin |
-| DELETE | `/schedule/:id` | dispatcher, admin |
-| POST | `/schedule/:id/cancel` | dispatcher, admin (+ авто-сповіщення) |
-| POST | `/schedule/:id/reschedule` | dispatcher, admin (+ авто-сповіщення) |
-| GET | `/schedule/export?format=csv` | dispatcher+ |
+| Метод  | Шлях                               | Доступ                                |
+| ------ | ---------------------------------- | ------------------------------------- |
+| GET    | `/schedule`                        | всі авторизовані                      |
+| GET    | `/schedule/my`                     | всі авторизовані (особистий розклад)  |
+| GET    | `/schedule/group/:groupId`         | teacher+                              |
+| GET    | `/schedule/teacher/:teacherId`     | dispatcher+                           |
+| GET    | `/schedule/classroom/:classroomId` | dispatcher+                           |
+| POST   | `/schedule`                        | dispatcher, admin                     |
+| PUT    | `/schedule/:id`                    | dispatcher, admin                     |
+| DELETE | `/schedule/:id`                    | dispatcher, admin                     |
+| POST   | `/schedule/:id/cancel`             | dispatcher, admin (+ авто-сповіщення) |
+| POST   | `/schedule/:id/reschedule`         | dispatcher, admin (+ авто-сповіщення) |
+| GET    | `/schedule/export?format=csv`      | dispatcher+                           |
 
 **Перевірка конфліктів:** при POST/PUT перевіряє зайнятість викладача, аудиторії, групи. Повертає HTTP 409 з переліком конфліктів.
 
@@ -229,27 +233,27 @@
 
 **Ендпоінти та доступ:**
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| GET | `/courses` | всі авторизовані |
-| GET | `/courses/my` | student (свій семестр), teacher (закріплені дисципліни) |
-| GET | `/courses/:caId` | авторизовані (деталі призначення) |
-| GET | `/courses/:caId/materials` | авторизовані |
-| POST | `/courses/:caId/materials` | teacher+ |
-| PUT | `/courses/:caId/materials/:id` | teacher+ |
-| DELETE | `/courses/:caId/materials/:id` | teacher+ |
-| GET | `/courses/:caId/assignments` | авторизовані |
-| POST | `/courses/:caId/assignments` | teacher+ |
-| PUT | `/courses/:caId/assignments/:id` | teacher+ |
-| GET | `/courses/:caId/grades` | teacher+, department_head+ |
-| GET | `/courses/assignments/my` | student |
-| GET | `/courses/grades/my` | student |
-| POST | `/courses/assignments/:id/submit` | student |
-| POST | `/courses/assignments/:id/grade` | teacher |
+| Метод  | Шлях                              | Доступ                                                  |
+| ------ | --------------------------------- | ------------------------------------------------------- |
+| GET    | `/courses`                        | всі авторизовані                                        |
+| GET    | `/courses/my`                     | student (свій семестр), teacher (закріплені дисципліни) |
+| GET    | `/courses/:caId`                  | авторизовані (деталі призначення)                       |
+| GET    | `/courses/:caId/materials`        | авторизовані                                            |
+| POST   | `/courses/:caId/materials`        | teacher+                                                |
+| PUT    | `/courses/:caId/materials/:id`    | teacher+                                                |
+| DELETE | `/courses/:caId/materials/:id`    | teacher+                                                |
+| GET    | `/courses/:caId/assignments`      | авторизовані                                            |
+| POST   | `/courses/:caId/assignments`      | teacher+                                                |
+| PUT    | `/courses/:caId/assignments/:id`  | teacher+                                                |
+| GET    | `/courses/:caId/grades`           | teacher+, department_head+                              |
+| GET    | `/courses/assignments/my`         | student                                                 |
+| GET    | `/courses/grades/my`              | student                                                 |
+| POST   | `/courses/assignments/:id/submit` | student                                                 |
+| POST   | `/courses/assignments/:id/grade`  | teacher                                                 |
 
 ---
 
-### 4.5 SurveysModule *(нове)*
+### 4.5 SurveysModule _(нове)_
 
 **Файли:** `src/surveys/`
 
@@ -263,11 +267,11 @@ interface Survey {
   title: string;
   description?: string;
   createdByUserId: string;
-  targetAudience: 'all_students' | 'group' | 'course_year';
-  targetGroupIds?: string[];      // якщо targetAudience = 'group'
-  targetCourseYear?: number;      // якщо targetAudience = 'course_year'
-  status: 'draft' | 'active' | 'closed';
-  isAnonymous: boolean;           // якщо true — відповіді без userId
+  targetAudience: "all_students" | "group" | "course_year";
+  targetGroupIds?: string[]; // якщо targetAudience = 'group'
+  targetCourseYear?: number; // якщо targetAudience = 'course_year'
+  status: "draft" | "active" | "closed";
+  isAnonymous: boolean; // якщо true — відповіді без userId
   startDate?: string;
   endDate?: string;
   createdAt: string;
@@ -278,42 +282,43 @@ interface SurveyQuestion {
   surveyId: string;
   order: number;
   text: string;
-  type: 'single_choice' | 'multiple_choice' | 'text' | 'rating';
+  type: "single_choice" | "multiple_choice" | "text" | "rating";
   required: boolean;
-  options?: { id: string; text: string }[];  // для single/multiple_choice
-  ratingMax?: number;                        // для rating (напр. 5 або 10)
+  options?: { id: string; text: string }[]; // для single/multiple_choice
+  ratingMax?: number; // для rating (напр. 5 або 10)
 }
 
 interface SurveyResponse {
   id: string;
   surveyId: string;
-  userId: string | null;    // null якщо isAnonymous
+  userId: string | null; // null якщо isAnonymous
   submittedAt: string;
   answers: {
     questionId: string;
-    value: string | string[];  // string[] для multiple_choice
+    value: string | string[]; // string[] для multiple_choice
   }[];
 }
 ```
 
 **Ендпоінти:**
 
-| Метод | Шлях | Доступ | Опис |
-|-------|------|--------|------|
-| POST | `/surveys` | admin, dean, rector | Створити опитування |
-| GET | `/surveys` | admin, dean, rector | Список всіх опитувань |
-| GET | `/surveys/active` | student, teacher | Активні опитування для поточного користувача |
-| GET | `/surveys/:id` | авторизовані | Деталі опитування з питаннями |
-| PUT | `/surveys/:id` | admin, dean (автор) | Редагування (тільки в статусі draft) |
-| PATCH | `/surveys/:id/publish` | admin, dean (автор) | Публікація (draft → active) |
-| PATCH | `/surveys/:id/close` | admin, dean (автор) | Закрити опитування (active → closed) |
-| DELETE | `/surveys/:id` | admin | Видалити (тільки draft) |
-| POST | `/surveys/:id/respond` | student, teacher | Надіслати відповіді |
-| GET | `/surveys/:id/my-response` | student, teacher | Перевірити — чи вже пройшов |
-| GET | `/surveys/:id/results` | admin, dean+, rector, president | Агреговані результати |
-| GET | `/surveys/:id/results/export` | admin, dean+ | Вивантаження у CSV |
+| Метод  | Шлях                          | Доступ                          | Опис                                         |
+| ------ | ----------------------------- | ------------------------------- | -------------------------------------------- |
+| POST   | `/surveys`                    | admin, dean, rector             | Створити опитування                          |
+| GET    | `/surveys`                    | admin, dean, rector             | Список всіх опитувань                        |
+| GET    | `/surveys/active`             | student, teacher                | Активні опитування для поточного користувача |
+| GET    | `/surveys/:id`                | авторизовані                    | Деталі опитування з питаннями                |
+| PUT    | `/surveys/:id`                | admin, dean (автор)             | Редагування (тільки в статусі draft)         |
+| PATCH  | `/surveys/:id/publish`        | admin, dean (автор)             | Публікація (draft → active)                  |
+| PATCH  | `/surveys/:id/close`          | admin, dean (автор)             | Закрити опитування (active → closed)         |
+| DELETE | `/surveys/:id`                | admin                           | Видалити (тільки draft)                      |
+| POST   | `/surveys/:id/respond`        | student, teacher                | Надіслати відповіді                          |
+| GET    | `/surveys/:id/my-response`    | student, teacher                | Перевірити — чи вже пройшов                  |
+| GET    | `/surveys/:id/results`        | admin, dean+, rector, president | Агреговані результати                        |
+| GET    | `/surveys/:id/results/export` | admin, dean+                    | Вивантаження у CSV                           |
 
 **Логіка:**
+
 - Студент може проходити опитування **лише один раз**
 - При `isAnonymous: true` — userId не зберігається у відповіді, але факт проходження фіксується окремо (щоб не дати пройти двічі)
 - Опитування з `endDate` у минулому автоматично переводяться в статус `closed` (cron або перевірка при запиті)
@@ -329,16 +334,16 @@ interface SurveyResponse {
 
 **Ендпоінти:**
 
-| Метод | Шлях | Опис |
-|-------|------|------|
-| GET | `/references/groups` | Список груп (+ фільтр по факультету/курсу) |
-| GET | `/references/groups/:id` | Деталі групи |
-| GET | `/references/classrooms` | Список аудиторій (+ фільтр по типу, корпусу) |
-| GET | `/references/departments` | Список кафедр |
-| GET | `/references/departments/:id` | Деталі кафедри |
-| GET | `/references/faculties` | Список факультетів |
-| GET | `/references/specialties` | Список спеціальностей |
-| POST/PUT/DELETE | `/references/*` | admin |
+| Метод           | Шлях                          | Опис                                         |
+| --------------- | ----------------------------- | -------------------------------------------- |
+| GET             | `/references/groups`          | Список груп (+ фільтр по факультету/курсу)   |
+| GET             | `/references/groups/:id`      | Деталі групи                                 |
+| GET             | `/references/classrooms`      | Список аудиторій (+ фільтр по типу, корпусу) |
+| GET             | `/references/departments`     | Список кафедр                                |
+| GET             | `/references/departments/:id` | Деталі кафедри                               |
+| GET             | `/references/faculties`       | Список факультетів                           |
+| GET             | `/references/specialties`     | Список спеціальностей                        |
+| POST/PUT/DELETE | `/references/*`               | admin                                        |
 
 ---
 
@@ -350,24 +355,24 @@ interface SurveyResponse {
 
 **Ендпоінти:**
 
-| Метод | Шлях | Опис |
-|-------|------|------|
-| GET | `/notifications` | Мої сповіщення (з пагінацією) |
-| GET | `/notifications/unread-count` | Кількість непрочитаних |
-| PATCH | `/notifications/:id/read` | Позначити прочитаним |
-| PATCH | `/notifications/read-all` | Позначити всі прочитаними |
-| POST | `/notifications/broadcast` | admin — надіслати всім або групі |
+| Метод | Шлях                          | Опис                             |
+| ----- | ----------------------------- | -------------------------------- |
+| GET   | `/notifications`              | Мої сповіщення (з пагінацією)    |
+| GET   | `/notifications/unread-count` | Кількість непрочитаних           |
+| PATCH | `/notifications/:id/read`     | Позначити прочитаним             |
+| PATCH | `/notifications/read-all`     | Позначити всі прочитаними        |
+| POST  | `/notifications/broadcast`    | admin — надіслати всім або групі |
 
 **Типи сповіщень:**
 
-| Тип | Коли генерується |
-|-----|-----------------|
+| Тип               | Коли генерується                         |
+| ----------------- | ---------------------------------------- |
 | `schedule_change` | Зміна / скасування / перенесення заняття |
-| `new_assignment` | Викладач опублікував нове завдання |
-| `grade` | Виставлено нову оцінку студенту |
-| `new_survey` | Опубліковано нове опитування |
-| `announcement` | Адмін надіслав оголошення |
-| `system` | Технічні повідомлення |
+| `new_assignment`  | Викладач опублікував нове завдання       |
+| `grade`           | Виставлено нову оцінку студенту          |
+| `new_survey`      | Опубліковано нове опитування             |
+| `announcement`    | Адмін надіслав оголошення                |
+| `system`          | Технічні повідомлення                    |
 
 ---
 
@@ -378,6 +383,7 @@ interface SurveyResponse {
 **Відповідальність:** ведення журналу всіх значущих дій. Необхідний для безпеки та розслідування інцидентів.
 
 **Що логується:**
+
 - Всі входи (успішні та невдалі) з IP та user-agent
 - Зміни ролей та блокування акаунтів
 - CRUD-операції над розкладом
@@ -386,6 +392,7 @@ interface SurveyResponse {
 - Завантаження файлів
 
 **Структура запису:**
+
 ```typescript
 interface AuditLogEntry {
   id: string;
@@ -393,13 +400,13 @@ interface AuditLogEntry {
   userId: string | null;
   userLogin: string;
   userRole: Role;
-  action: string;           // 'login', 'grade.create', 'schedule.delete', 'survey.publish'...
+  action: string; // 'login', 'grade.create', 'schedule.delete', 'survey.publish'...
   targetEntity?: string;
   targetId?: string;
   details?: Record<string, unknown>;
   ipAddress: string;
   userAgent: string;
-  result: 'success' | 'failure';
+  result: "success" | "failure";
 }
 ```
 
@@ -472,44 +479,48 @@ src/
 
 ### 5.2 Layout — видимість меню за роллю
 
-| Пункт | student | teacher | dispatcher | dept_head | dean | admin |
-|-------|---------|---------|------------|-----------|------|-------|
-| Дашборд | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Розклад | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Мої курси | ✅ | ✅ | — | — | — | — |
-| Завдання | ✅ | ✅ | — | — | — | — |
-| Оцінки | ✅ | — | — | — | — | — |
-| Опитування | ✅ | ✅ | — | — | — | — |
-| Керування опитуваннями | — | — | — | — | ✅ | ✅ |
-| Результати опитувань | — | — | — | ✅ | ✅ | ✅ |
-| Сповіщення | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Звіти | — | — | — | ✅ | ✅ | — |
-| Розклад (CRUD) | — | — | ✅ | — | — | ✅ |
-| Користувачі | — | — | — | — | — | ✅ |
+| Пункт                  | student | teacher | dispatcher | dept_head | dean | admin |
+| ---------------------- | ------- | ------- | ---------- | --------- | ---- | ----- |
+| Дашборд                | ✅      | ✅      | ✅         | ✅        | ✅   | ✅    |
+| Розклад                | ✅      | ✅      | ✅         | ✅        | ✅   | —     |
+| Мої курси              | ✅      | ✅      | —          | —         | —    | —     |
+| Завдання               | ✅      | ✅      | —          | —         | —    | —     |
+| Оцінки                 | ✅      | —       | —          | —         | —    | —     |
+| Опитування             | ✅      | ✅      | —          | —         | —    | —     |
+| Керування опитуваннями | —       | —       | —          | —         | ✅   | ✅    |
+| Результати опитувань   | —       | —       | —          | ✅        | ✅   | ✅    |
+| Сповіщення             | ✅      | ✅      | ✅         | ✅        | ✅   | ✅    |
+| Звіти                  | —       | —       | —          | ✅        | ✅   | —     |
+| Розклад (CRUD)         | —       | —       | ✅         | —         | —    | ✅    |
+| Користувачі            | —       | —       | —          | —         | —    | ✅    |
 
 ---
 
 ### 5.3 Сторінки опитувань
 
-#### SurveysPage *(student, teacher)*
+#### SurveysPage _(student, teacher)_
+
 - Список активних опитувань для поточного користувача
 - Відображення: назва, дедлайн, кількість питань, статус "пройдено / ще ні"
 - Кнопка "Пройти" для непройдених
 
 #### SurveyPlayerPage
+
 - Покрокове або все-на-одній-сторінці проходження
 - Типи питань: single-choice (radio), multiple-choice (checkbox), text (textarea), rating (зірки / число)
 - Прогрес-бар
 - Підтвердження перед відправкою
 - Після здачі — сторінка подяки
 
-#### SurveyAdminPage *(admin, dean)*
+#### SurveyAdminPage _(admin, dean)_
+
 - Таблиця всіх опитувань з фільтром по статусу
 - Форма створення: назва, опис, цільова аудиторія, анонімність, терміни
 - Конструктор питань: drag & drop порядок, додати/видалити питання, вибір типу
 - Кнопки: Зберегти чернетку / Опублікувати / Закрити
 
-#### SurveyResultsPage *(admin, dean+)*
+#### SurveyResultsPage _(admin, dean+)_
+
 - Загальна статистика: кількість отримала / кількість пройшла / відсоток охоплення
 - По кожному питанню:
   - single/multiple_choice: горизонтальна гістограма з кількістю та відсотком
@@ -525,7 +536,8 @@ src/
 
 ```
 User
-├── id, login, passwordHash, role, email, phone
+├── id, login, passwordHash, passwordResetTokenHash, passwordResetTokenExpiresAt
+├── role, email, phone
 ├── firstName, lastName, middleName
 ├── avatarUrl, status: active|blocked, createdAt
 │
@@ -603,93 +615,95 @@ AuditLogEntry
 
 ## 7. API — повний опис ендпоінтів
 
-Всі ендпоінти доступні за префіксом `/api`. Всі захищені JwtAuthGuard, крім `/api/auth/login` та `/api/auth/refresh`.
+Всі ендпоінти доступні за префіксом `/api`. Всі захищені JwtAuthGuard, крім `/api/auth/login`, `/api/auth/refresh` та password reset ендпоінтів.
 
 ### Аутентифікація `/api/auth`
 
-| Метод | Шлях | Тіло | Відповідь | Доступ |
-|-------|------|------|-----------|--------|
-| POST | `/auth/login` | `{ login, password }` | `{ accessToken, refreshToken, user }` | Публічний |
-| POST | `/auth/refresh` | `{ refreshToken }` | `{ accessToken, refreshToken }` | Публічний |
-| GET | `/auth/profile` | — | User з профілями | Авторизований |
-| POST | `/auth/change-password` | `{ oldPassword, newPassword }` | 200 | Авторизований |
+| Метод | Шлях                           | Тіло                           | Відповідь                                            | Доступ        |
+| ----- | ------------------------------ | ------------------------------ | ---------------------------------------------------- | ------------- |
+| POST  | `/auth/login`                  | `{ login, password }`          | `{ accessToken, refreshToken, user }`                | Публічний     |
+| POST  | `/auth/refresh`                | `{ refreshToken }`             | `{ accessToken, refreshToken }`                      | Публічний     |
+| POST  | `/auth/password-reset/request` | `{ identifier }`               | `{ message }` + dev reset URL тільки поза production | Публічний     |
+| POST  | `/auth/password-reset/confirm` | `{ token, newPassword }`       | `{ message }`                                        | Публічний     |
+| GET   | `/auth/profile`                | —                              | User з профілями                                     | Авторизований |
+| POST  | `/auth/change-password`        | `{ oldPassword, newPassword }` | 200                                                  | Авторизований |
 
 ### Користувачі `/api/users`
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| GET | `/users` | admin, rector, president |
-| GET | `/users/search?q=&role=` | admin+ |
-| GET | `/users/:id` | admin, rector, president, dean |
-| POST | `/users` | admin |
-| PATCH | `/users/:id` | admin |
-| PATCH | `/users/:id/block` | admin |
-| PATCH | `/users/:id/role` | admin |
-| GET | `/users/group/:groupId` | teacher+ |
-| GET | `/users/department/:depId` | department_head+ |
+| Метод | Шлях                       | Доступ                         |
+| ----- | -------------------------- | ------------------------------ |
+| GET   | `/users`                   | admin, rector, president       |
+| GET   | `/users/search?q=&role=`   | admin+                         |
+| GET   | `/users/:id`               | admin, rector, president, dean |
+| POST  | `/users`                   | admin                          |
+| PATCH | `/users/:id`               | admin                          |
+| PATCH | `/users/:id/block`         | admin                          |
+| PATCH | `/users/:id/role`          | admin                          |
+| GET   | `/users/group/:groupId`    | teacher+                       |
+| GET   | `/users/department/:depId` | department_head+               |
 
 ### Розклад `/api/schedule`
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| GET | `/schedule/my` | Авторизований |
-| GET | `/schedule?date=&groupId=&teacherId=` | Авторизований |
-| POST | `/schedule` | dispatcher, admin |
-| PUT | `/schedule/:id` | dispatcher, admin |
-| DELETE | `/schedule/:id` | dispatcher, admin |
-| POST | `/schedule/:id/cancel` | dispatcher, admin |
-| GET | `/schedule/export?format=csv&groupId=` | dispatcher+ |
+| Метод  | Шлях                                   | Доступ            |
+| ------ | -------------------------------------- | ----------------- |
+| GET    | `/schedule/my`                         | Авторизований     |
+| GET    | `/schedule?date=&groupId=&teacherId=`  | Авторизований     |
+| POST   | `/schedule`                            | dispatcher, admin |
+| PUT    | `/schedule/:id`                        | dispatcher, admin |
+| DELETE | `/schedule/:id`                        | dispatcher, admin |
+| POST   | `/schedule/:id/cancel`                 | dispatcher, admin |
+| GET    | `/schedule/export?format=csv&groupId=` | dispatcher+       |
 
 ### Курси та навчання `/api/courses`
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| GET | `/courses/my` | Авторизований |
-| GET | `/courses/:caId/materials` | Авторизований |
-| POST | `/courses/:caId/materials` | teacher+ |
-| GET | `/courses/:caId/assignments` | Авторизований |
-| POST | `/courses/:caId/assignments` | teacher+ |
-| GET | `/courses/assignments/my` | student |
-| POST | `/courses/assignments/:id/submit` | student |
-| GET | `/courses/grades/my` | student |
-| POST | `/courses/assignments/:id/grade` | teacher |
+| Метод | Шлях                              | Доступ        |
+| ----- | --------------------------------- | ------------- |
+| GET   | `/courses/my`                     | Авторизований |
+| GET   | `/courses/:caId/materials`        | Авторизований |
+| POST  | `/courses/:caId/materials`        | teacher+      |
+| GET   | `/courses/:caId/assignments`      | Авторизований |
+| POST  | `/courses/:caId/assignments`      | teacher+      |
+| GET   | `/courses/assignments/my`         | student       |
+| POST  | `/courses/assignments/:id/submit` | student       |
+| GET   | `/courses/grades/my`              | student       |
+| POST  | `/courses/assignments/:id/grade`  | teacher       |
 
 ### Опитування `/api/surveys`
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| POST | `/surveys` | admin, dean, rector |
-| GET | `/surveys` | admin, dean, rector |
-| GET | `/surveys/active` | student, teacher |
-| GET | `/surveys/:id` | Авторизований |
-| PUT | `/surveys/:id` | admin, dean (тільки draft) |
-| PATCH | `/surveys/:id/publish` | admin, dean |
-| PATCH | `/surveys/:id/close` | admin, dean |
-| DELETE | `/surveys/:id` | admin (тільки draft) |
-| POST | `/surveys/:id/respond` | student, teacher |
-| GET | `/surveys/:id/my-response` | student, teacher |
-| GET | `/surveys/:id/results` | admin, dean+, rector, president |
-| GET | `/surveys/:id/results/export` | admin, dean+ |
+| Метод  | Шлях                          | Доступ                          |
+| ------ | ----------------------------- | ------------------------------- |
+| POST   | `/surveys`                    | admin, dean, rector             |
+| GET    | `/surveys`                    | admin, dean, rector             |
+| GET    | `/surveys/active`             | student, teacher                |
+| GET    | `/surveys/:id`                | Авторизований                   |
+| PUT    | `/surveys/:id`                | admin, dean (тільки draft)      |
+| PATCH  | `/surveys/:id/publish`        | admin, dean                     |
+| PATCH  | `/surveys/:id/close`          | admin, dean                     |
+| DELETE | `/surveys/:id`                | admin (тільки draft)            |
+| POST   | `/surveys/:id/respond`        | student, teacher                |
+| GET    | `/surveys/:id/my-response`    | student, teacher                |
+| GET    | `/surveys/:id/results`        | admin, dean+, rector, president |
+| GET    | `/surveys/:id/results/export` | admin, dean+                    |
 
 ### Сповіщення `/api/notifications`
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| GET | `/notifications` | Авторизований |
-| GET | `/notifications/unread-count` | Авторизований |
-| PATCH | `/notifications/:id/read` | Авторизований |
-| PATCH | `/notifications/read-all` | Авторизований |
-| POST | `/notifications/broadcast` | admin |
+| Метод | Шлях                          | Доступ        |
+| ----- | ----------------------------- | ------------- |
+| GET   | `/notifications`              | Авторизований |
+| GET   | `/notifications/unread-count` | Авторизований |
+| PATCH | `/notifications/:id/read`     | Авторизований |
+| PATCH | `/notifications/read-all`     | Авторизований |
+| POST  | `/notifications/broadcast`    | admin         |
 
 ### Довідники `/api/references`
 
-| Метод | Шлях | Доступ |
-|-------|------|--------|
-| GET | `/references/groups` | Авторизований |
-| GET | `/references/classrooms` | Авторизований |
-| GET | `/references/departments` | Авторизований |
-| GET | `/references/faculties` | Авторизований |
-| POST/PUT/DELETE | `/references/*` | admin |
+| Метод           | Шлях                      | Доступ        |
+| --------------- | ------------------------- | ------------- |
+| GET             | `/references/groups`      | Авторизований |
+| GET             | `/references/classrooms`  | Авторизований |
+| GET             | `/references/departments` | Авторизований |
+| GET             | `/references/faculties`   | Авторизований |
+| POST/PUT/DELETE | `/references/*`           | admin         |
 
 ---
 
@@ -713,21 +727,21 @@ Student        (базовий доступ)
 
 ### Матриця можливостей
 
-| Можливість | student | teacher | dispatcher | dept_head | dean | rector | president | admin |
-|------------|---------|---------|------------|-----------|------|--------|-----------|-------|
-| Особистий розклад | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Редагування розкладу | — | — | ✅ | — | — | — | — | ✅ |
-| Перегляд матеріалів курсів | ✅ | ✅ | — | ✅ | — | — | — | — |
-| Публікація матеріалів | — | ✅ | — | ✅ | — | — | — | — |
-| Здача завдань | ✅ | — | — | — | — | — | — | — |
-| Виставлення оцінок | — | ✅ | — | ✅ | — | — | — | — |
-| Перегляд особистих оцінок | ✅ | — | — | — | — | — | — | — |
-| Проходження опитувань | ✅ | ✅ | — | — | — | — | — | — |
-| Створення опитувань | — | — | — | — | ✅ | ✅ | ✅ | ✅ |
-| Перегляд результатів опитувань | — | — | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Звіти по кафедрі | — | — | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Управління користувачами | — | — | — | — | — | — | — | ✅ |
-| Перегляд аудит-логу | — | — | — | — | — | — | — | ✅ |
+| Можливість                     | student | teacher | dispatcher | dept_head | dean | rector | president | admin |
+| ------------------------------ | ------- | ------- | ---------- | --------- | ---- | ------ | --------- | ----- |
+| Особистий розклад              | ✅      | ✅      | ✅         | ✅        | ✅   | ✅     | ✅        | —     |
+| Редагування розкладу           | —       | —       | ✅         | —         | —    | —      | —         | ✅    |
+| Перегляд матеріалів курсів     | ✅      | ✅      | —          | ✅        | —    | —      | —         | —     |
+| Публікація матеріалів          | —       | ✅      | —          | ✅        | —    | —      | —         | —     |
+| Здача завдань                  | ✅      | —       | —          | —         | —    | —      | —         | —     |
+| Виставлення оцінок             | —       | ✅      | —          | ✅        | —    | —      | —         | —     |
+| Перегляд особистих оцінок      | ✅      | —       | —          | —         | —    | —      | —         | —     |
+| Проходження опитувань          | ✅      | ✅      | —          | —         | —    | —      | —         | —     |
+| Створення опитувань            | —       | —       | —          | —         | ✅   | ✅     | ✅        | ✅    |
+| Перегляд результатів опитувань | —       | —       | —          | ✅        | ✅   | ✅     | ✅        | ✅    |
+| Звіти по кафедрі               | —       | —       | —          | ✅        | ✅   | ✅     | ✅        | ✅    |
+| Управління користувачами       | —       | —       | —          | —         | —    | —      | —         | ✅    |
+| Перегляд аудит-логу            | —       | —       | —          | —         | —    | —      | —         | ✅    |
 
 ---
 
@@ -744,19 +758,19 @@ Student        (базовий доступ)
 - **HTTPS** обов'язково в production
 - **Helmet** — заголовки: `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`, `Content-Security-Policy`
 - **CORS** — дозволений тільки домен фронтенду
-- **Rate limiting** — `/auth/login` максимум 10 спроб за 15 хвилин з одного IP
+- **Rate limiting** — `/auth/login` максимум 10 спроб за 15 хвилин з одного IP, password reset endpoints максимум 5 спроб за 15 хвилин
 - **Input validation** — `class-validator` + `ValidationPipe` на всіх DTO
 
 ### Захист від типових вразливостей
 
-| Вразливість | Захист |
-|-------------|--------|
-| SQL Injection | Parameterized queries через Mongoose ODM |
-| XSS | `Content-Security-Policy`, React escaping |
-| CSRF | `SameSite=Strict` cookie, CORS обмеження |
-| Brute Force | Rate limiting на /auth/login |
-| Path Traversal | Валідація file paths, заборона `../` |
-| Sensitive Data Exposure | Пароль ніколи не повертається в API-відповідях |
+| Вразливість             | Захист                                                   |
+| ----------------------- | -------------------------------------------------------- |
+| SQL Injection           | Parameterized queries через Mongoose ODM                 |
+| XSS                     | `Content-Security-Policy`, React escaping                |
+| CSRF                    | `SameSite=Strict` cookie, CORS обмеження                 |
+| Brute Force             | Rate limiting на /auth/login та password reset endpoints |
+| Path Traversal          | Валідація file paths, заборона `../`                     |
+| Sensitive Data Exposure | Пароль ніколи не повертається в API-відповідях           |
 
 ---
 
@@ -785,45 +799,45 @@ Student        (базовий доступ)
 
 ### Фаза 1 — MVP (поточний стан)
 
-| # | Компонент | Статус |
-|---|-----------|--------|
-| 1 | NestJS + TypeScript ініціалізація | ✅ Готово |
-| 2 | Моделі даних та типи | ✅ Готово |
-| 3 | Mock-дані (15 користувачів, всі 8 ролей) | ✅ Готово |
-| 4 | AuthModule (JWT, bcrypt, refresh) | ✅ Готово |
-| 5 | RBAC Guards (@Roles, RolesGuard) | ✅ Готово |
-| 6 | ScheduleModule (CRUD, перевірка конфліктів) | ✅ Готово |
-| 7 | CoursesModule (дисципліни, матеріали, завдання) | ✅ Готово |
-| 8 | ReferencesModule (довідники) | ✅ Готово |
-| 9 | NotificationsModule | ✅ Готово |
-| 10 | UsersModule | ✅ Готово |
-| 11 | React: Auth flow (Zustand, interceptors) | ✅ Готово |
-| 12 | React: Layout з роль-навігацією | ✅ Готово |
-| 13 | React: 8 сторінок | ✅ Готово |
-| 14 | Docker Compose | ✅ Готово |
+| #   | Компонент                                       | Статус    |
+| --- | ----------------------------------------------- | --------- |
+| 1   | NestJS + TypeScript ініціалізація               | ✅ Готово |
+| 2   | Моделі даних та типи                            | ✅ Готово |
+| 3   | Mock-дані (15 користувачів, всі 8 ролей)        | ✅ Готово |
+| 4   | AuthModule (JWT, bcrypt, refresh)               | ✅ Готово |
+| 5   | RBAC Guards (@Roles, RolesGuard)                | ✅ Готово |
+| 6   | ScheduleModule (CRUD, перевірка конфліктів)     | ✅ Готово |
+| 7   | CoursesModule (дисципліни, матеріали, завдання) | ✅ Готово |
+| 8   | ReferencesModule (довідники)                    | ✅ Готово |
+| 9   | NotificationsModule                             | ✅ Готово |
+| 10  | UsersModule                                     | ✅ Готово |
+| 11  | React: Auth flow (Zustand, interceptors)        | ✅ Готово |
+| 12  | React: Layout з роль-навігацією                 | ✅ Готово |
+| 13  | React: 8 сторінок                               | ✅ Готово |
+| 14  | Docker Compose                                  | ✅ Готово |
 
 ### Фаза 2 — База даних + File Upload + Опитування
 
-| # | Завдання |
-|---|----------|
-| 1 | MongoDB + Mongoose ODM замість mock-даних |
-| 2 | Міграції схеми |
-| 3 | FileModule — завантаження файлів (матеріали, здачі) |
-| 4 | CRUD для всіх довідників через UI |
-| 5 | **SurveysModule** — бекенд + фронтенд (повний цикл) |
-| 6 | Модуль відвідуваності |
+| #   | Завдання                                            |
+| --- | --------------------------------------------------- |
+| 1   | MongoDB + Mongoose ODM замість mock-даних           |
+| 2   | Міграції схеми                                      |
+| 3   | FileModule — завантаження файлів (матеріали, здачі) |
+| 4   | CRUD для всіх довідників через UI                   |
+| 5   | **SurveysModule** — бекенд + фронтенд (повний цикл) |
+| 6   | Модуль відвідуваності                               |
 
 ### Фаза 3 — Production Ready
 
-| # | Завдання |
-|---|----------|
-| 1 | HTTPS + Helmet + rate limiting |
-| 2 | CI/CD pipeline (GitHub Actions → VPS) |
-| 3 | Email-сповіщення (зміни розкладу, нові завдання) |
-| 4 | AuditLogModule (повна реалізація) |
-| 5 | Адаптивний дизайн (мобільні пристрої) |
-| 6 | Звіти та експорт (XLS/CSV) |
-| 7 | i18n (українська + англійська) |
+| #   | Завдання                                         |
+| --- | ------------------------------------------------ |
+| 1   | HTTPS + Helmet + rate limiting                   |
+| 2   | CI/CD pipeline (GitHub Actions → VPS)            |
+| 3   | Email-сповіщення (зміни розкладу, нові завдання) |
+| 4   | AuditLogModule (повна реалізація)                |
+| 5   | Адаптивний дизайн (мобільні пристрої)            |
+| 6   | Звіти та експорт (XLS/CSV)                       |
+| 7   | i18n (українська + англійська)                   |
 
 ---
 
@@ -840,60 +854,128 @@ online_campus/
 │
 ├── server/                    # NestJS Backend
 │   ├── Dockerfile
+│   ├── nest-cli.json
 │   ├── package.json
+│   ├── package-lock.json
 │   ├── tsconfig.json
+│   ├── test/                  # e2e specs
 │   └── src/
 │       ├── main.ts
 │       ├── app.module.ts
 │       │
-│       ├── auth/
+│       ├── auth/              # JWT auth, refresh sessions, password change/reset
+│       │   ├── dto/
+│       │   │   ├── login.dto.ts
+│       │   │   ├── refresh.dto.ts
+│       │   │   ├── logout.dto.ts
+│       │   │   ├── change-password.dto.ts
+│       │   │   ├── request-password-reset.dto.ts
+│       │   │   └── confirm-password-reset.dto.ts
 │       │   ├── auth.module.ts
 │       │   ├── auth.controller.ts
 │       │   ├── auth.service.ts
+│       │   ├── auth.service.spec.ts
 │       │   ├── jwt.strategy.ts
 │       │   ├── jwt-auth.guard.ts
 │       │   └── roles.guard.ts
 │       │
-│       ├── users/
+│       ├── users/             # users, profiles, role changes, account status
+│       │   ├── dto/
+│       │   ├── schemas/
 │       │   ├── users.module.ts
 │       │   ├── users.controller.ts
-│       │   └── users.service.ts
+│       │   ├── users.service.ts
+│       │   └── users.service.spec.ts
 │       │
-│       ├── schedule/
+│       ├── schedule/          # timetable CRUD, conflict checks, export
+│       │   ├── dto/
+│       │   ├── schemas/
 │       │   ├── schedule.module.ts
 │       │   ├── schedule.controller.ts
-│       │   └── schedule.service.ts
+│       │   ├── schedule.service.ts
+│       │   └── schedule.service.spec.ts
 │       │
-│       ├── courses/
+│       ├── courses/           # courses domain split by bounded submodules
 │       │   ├── courses.module.ts
-│       │   ├── courses.controller.ts
-│       │   └── courses.service.ts
+│       │   ├── courses/       # course assignments and student course views
+│       │   │   ├── dto/
+│       │   │   ├── courses.controller.ts
+│       │   │   └── courses.service.ts
+│       │   ├── materials/
+│       │   │   ├── dto/
+│       │   │   ├── materials.controller.ts
+│       │   │   └── materials.service.ts
+│       │   ├── assignments/
+│       │   │   ├── dto/
+│       │   │   ├── assignments.controller.ts
+│       │   │   └── assignments.service.ts
+│       │   ├── submissions/
+│       │   │   ├── dto/
+│       │   │   ├── submissions.controller.ts
+│       │   │   └── submissions.service.ts
+│       │   ├── grades/
+│       │   │   ├── dto/
+│       │   │   ├── grades.controller.ts
+│       │   │   └── grades.service.ts
+│       │   └── schemas/
 │       │
-│       ├── surveys/
+│       ├── surveys/           # survey lifecycle, responses, completions, results
+│       │   ├── dto/
+│       │   ├── schemas/
 │       │   ├── surveys.module.ts
 │       │   ├── surveys.controller.ts
-│       │   └── surveys.service.ts
+│       │   ├── surveys.service.ts
+│       │   └── surveys.service.spec.ts
 │       │
-│       ├── references/
+│       ├── references/        # faculties, departments, groups, specialties, classrooms
+│       │   ├── dto/
+│       │   ├── schemas/
 │       │   ├── references.module.ts
 │       │   ├── references.controller.ts
-│       │   └── references.service.ts
+│       │   ├── reference-integrity.service.ts
+│       │   ├── reference-integrity.service.spec.ts
+│       │   ├── faculties.service.ts
+│       │   ├── departments.service.ts
+│       │   ├── groups.service.ts
+│       │   ├── specialties.service.ts
+│       │   └── classrooms.service.ts
 │       │
-│       ├── notifications/
+│       ├── notifications/     # user and broadcast notifications
+│       │   ├── dto/
+│       │   ├── schemas/
 │       │   ├── notifications.module.ts
 │       │   ├── notifications.controller.ts
 │       │   └── notifications.service.ts
 │       │
-│       ├── audit-log/
-│       │   ├── audit-log.module.ts
-│       │   └── audit-log.service.ts
+│       ├── files/             # file upload/download/delete and metadata
+│       │   ├── dto/
+│       │   ├── file.schema.ts
+│       │   ├── files.module.ts
+│       │   ├── files.controller.ts
+│       │   └── files.service.ts
 │       │
-│       └── common/
+│       ├── audit-log/         # audit persistence and admin listing
+│       │   ├── dto/
+│       │   ├── schemas/
+│       │   ├── audit-log.module.ts
+│       │   ├── audit-log.controller.ts
+│       │   ├── audit-log.service.ts
+│       │   ├── audit-log.service.spec.ts
+│       │   └── audit.interceptor.ts
+│       │
+│       ├── seed/              # demo data seeders
+│       │   ├── seed.module.ts
+│       │   ├── seed.service.ts
+│       │   └── seeders/
+│       │
+│       └── common/            # shared DTOs, middleware, swagger, types, utils, validators
+│           ├── dto/
+│           ├── middleware/
+│           ├── swagger/
 │           ├── types/
-│           │   ├── roles.enum.ts
-│           │   └── entities.ts
+│           ├── utils/
+│           ├── validators/
 │           └── mock-data/
-│               └── index.ts
 │
 └── client/                    # React Frontend
     ├── Dockerfile
@@ -988,6 +1070,8 @@ cd client && npm install && npm run dev
 JWT_SECRET=your-super-secret-key-min-32-chars
 JWT_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
+PASSWORD_RESET_TTL_MINUTES=30
+PASSWORD_RESET_EXPOSE_TOKEN=false
 
 # БД [Phase 2]
 DATABASE_URL=mongodb://mongo:27017/campus
@@ -1004,15 +1088,17 @@ NODE_ENV=production
 **Hetzner CX31** (або аналог): 4 vCPU, 8 GB RAM, 80 GB SSD — ~€12/міс.
 
 На сервері запускається `docker-compose.prod.yml`:
+
 ```yaml
 services:
-  server:   # NestJS — 2 replicas (через docker compose scale або Traefik)
-  client:   # Nginx + React build
-  mongo:    # MongoDB 7
+  server: # NestJS — 2 replicas (через docker compose scale або Traefik)
+  client: # Nginx + React build
+  mongo: # MongoDB 7
   # Traefik або Nginx як reverse proxy з SSL (Let's Encrypt)
 ```
 
 **Орієнтовна ємність при 5000 юзерів:**
+
 - Пікове одночасне навантаження ~500 активних сесій
 - NestJS на Node.js легко тримає 1000+ req/s на CX31
 - MongoDB з індексами — без проблем для такого обсягу
@@ -1125,13 +1211,13 @@ jobs:
 
 ### Secrets для GitHub Actions
 
-| Secret | Значення |
-|--------|----------|
-| `DOCKER_USERNAME` | логін Docker Hub (або GHCR) |
-| `DOCKER_PASSWORD` | пароль / токен |
-| `VPS_HOST` | IP або домен сервера |
-| `VPS_USER` | SSH-користувач (напр. `deploy`) |
-| `VPS_SSH_KEY` | приватний SSH-ключ |
+| Secret            | Значення                        |
+| ----------------- | ------------------------------- |
+| `DOCKER_USERNAME` | логін Docker Hub (або GHCR)     |
+| `DOCKER_PASSWORD` | пароль / токен                  |
+| `VPS_HOST`        | IP або домен сервера            |
+| `VPS_USER`        | SSH-користувач (напр. `deploy`) |
+| `VPS_SSH_KEY`     | приватний SSH-ключ              |
 
 ### Підготовка VPS
 
@@ -1153,11 +1239,11 @@ mkdir -p /opt/campus && cd /opt/campus
 
 Для швидкого старту або стейджингу:
 
-| Платформа | Плюси | Мінуси |
-|-----------|-------|--------|
+| Платформа   | Плюси                                                   | Мінуси                        |
+| ----------- | ------------------------------------------------------- | ----------------------------- |
 | **Railway** | Deploy одним кліком, MongoDB включений, SSL автоматично | Дорожче при зростанні трафіку |
-| **Render** | Безкоштовний tier, простий деплой з Docker | Cold start на free tier |
-| **Fly.io** | Близька до production гнучкість, є Kyiv PoP | Потребує CLI |
+| **Render**  | Безкоштовний tier, простий деплой з Docker              | Cold start на free tier       |
+| **Fly.io**  | Близька до production гнучкість, є Kyiv PoP             | Потребує CLI                  |
 
 ---
 
@@ -1165,27 +1251,27 @@ mkdir -p /opt/campus && cd /opt/campus
 
 ### Користувачі (пароль для всіх: `password123`)
 
-| Логін | Роль | ПІБ |
-|-------|------|-----|
-| `student1` | Студент | Петренко Олександр Іванович |
-| `student2` | Студент | Коваленко Марія Сергіївна |
-| `teacher1` | Викладач | Мельник Віктор Олегович |
-| `teacher2` | Викладач | Кравченко Наталія Петрівна |
-| `dispatcher1` | Диспетчер розкладу | Савченко Олена |
-| `head1` | Завідувач кафедри | Григоренко Петро Васильович |
-| `dean1` | Декан факультету | Козлов Михайло Андрійович |
-| `rector` | Ректор | Сидоренко Володимир Миколайович |
-| `president` | Президент академії | Головко Юрій Борисович |
-| `admin` | Адміністратор | Системний Адмін |
+| Логін         | Роль               | ПІБ                             |
+| ------------- | ------------------ | ------------------------------- |
+| `student1`    | Студент            | Петренко Олександр Іванович     |
+| `student2`    | Студент            | Коваленко Марія Сергіївна       |
+| `teacher1`    | Викладач           | Мельник Віктор Олегович         |
+| `teacher2`    | Викладач           | Кравченко Наталія Петрівна      |
+| `dispatcher1` | Диспетчер розкладу | Савченко Олена                  |
+| `head1`       | Завідувач кафедри  | Григоренко Петро Васильович     |
+| `dean1`       | Декан факультету   | Козлов Михайло Андрійович       |
+| `rector`      | Ректор             | Сидоренко Володимир Миколайович |
+| `president`   | Президент академії | Головко Юрій Борисович          |
+| `admin`       | Адміністратор      | Системний Адмін                 |
 
 ### Тестові опитування (mock)
 
-| Назва | Статус | Аудиторія | Анонімно |
-|-------|--------|-----------|---------|
-| "Якість викладання — весна 2026" | active | all_students | так |
-| "Оцінка роботи деканату" | active | all_students | так |
-| "Побажання щодо розкладу" | draft | — | ні |
+| Назва                            | Статус | Аудиторія    | Анонімно |
+| -------------------------------- | ------ | ------------ | -------- |
+| "Якість викладання — весна 2026" | active | all_students | так      |
+| "Оцінка роботи деканату"         | active | all_students | так      |
+| "Побажання щодо розкладу"        | draft  | —            | ні       |
 
 ---
 
-*Документ актуальний станом на березень 2026.*
+_Документ актуальний станом на травень 2026._

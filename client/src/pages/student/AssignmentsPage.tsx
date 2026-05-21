@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import api from '../../services/api';
 import type { Assignment, PaginatedResponse } from '../../types';
 import { useTranslation } from 'react-i18next';
@@ -63,7 +64,7 @@ const handleDelete = async (fileId: string | undefined, assignmentId: string) =>
       if (fileId) {
         try {
           await api.delete(`/files/${fileId}`);
-        } catch (fileError) {
+        } catch {
           console.warn('Файл вже видалено, продовжуємо очищення бази...');
         }
       }
@@ -99,8 +100,7 @@ const handleDelete = async (fileId: string | undefined, assignmentId: string) =>
             const status = getStatusBadge(a);
             //const isOverdue = new Date(a.dueDate) < new Date(); // блокує завантаження файлу після дедлайну
             const isOverdue = false; // залишає можливість завантажувати файл після дедлайну
-            const submissionAny = a.submission as any; 
-            const file = submissionAny?.files && submissionAny.files.length > 0 ? submissionAny.files[0] : null;
+            const file = a.submission?.files?.[0] ?? null;
             const fileId = file ? (file.id || file._id) : undefined;
             const fileName = file ? file.originalName : 'Завантажений файл';
             return (
@@ -150,8 +150,14 @@ const handleDelete = async (fileId: string | undefined, assignmentId: string) =>
                         try {
                           await filesApi.submitAssignment(a.id, file);
                           await refetch();
-                        } catch (error: any) {
-                          const errorMsg = error.response?.data?.message || 'Помилка при завантаженні';
+                        } catch (error: unknown) {
+                          const responseMessage = axios.isAxiosError(error)
+                            ? error.response?.data?.message
+                            : undefined;
+                          const errorMsg =
+                            typeof responseMessage === 'string'
+                              ? responseMessage
+                              : 'Помилка при завантаженні';
                           alert(`Увага: ${errorMsg}`);
                         }
                       }} 

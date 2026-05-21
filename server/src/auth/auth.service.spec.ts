@@ -1,9 +1,14 @@
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { Role } from '../common/types/roles.enum';
 import { UsersService } from '../users/users.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthService } from './auth.service';
@@ -59,6 +64,9 @@ describe('AuthService', () => {
       | 'removeAllRefreshTokenHashes'
       | 'updatePassword'
       | 'findOne'
+      | 'findPasswordResetCandidate'
+      | 'setPasswordResetToken'
+      | 'consumePasswordResetToken'
     >
   >;
   let auditLogService: jest.Mocked<Pick<AuditLogService, 'logAction'>>;
@@ -76,6 +84,9 @@ describe('AuthService', () => {
       removeAllRefreshTokenHashes: jest.fn(),
       updatePassword: jest.fn(),
       findOne: jest.fn(),
+      findPasswordResetCandidate: jest.fn(),
+      setPasswordResetToken: jest.fn(),
+      consumePasswordResetToken: jest.fn(),
     };
     auditLogService = {
       logAction: jest.fn(),
@@ -85,6 +96,9 @@ describe('AuthService', () => {
       get: jest.fn((key: string) => {
         if (key === 'JWT_EXPIRES_IN') return '15m';
         if (key === 'JWT_REFRESH_EXPIRES_IN') return '7d';
+        if (key === 'NODE_ENV') return 'test';
+        if (key === 'CLIENT_URL') return 'http://localhost:5173';
+        if (key === 'PASSWORD_RESET_EXPOSE_TOKEN') return 'true';
         return undefined;
       }),
     } as unknown as ConfigService;
@@ -205,6 +219,116 @@ describe('AuthService', () => {
     );
     expect(usersService.removeAllRefreshTokenHashes).toHaveBeenCalledWith(
       user.id,
+    );
+  });
+
+  it('issues password reset tokens without exposing account existence', async () => {
+    const user = createUser();
+    usersService.findPasswordResetCandidate.mockResolvedValue({
+      id: user.id,
+      login: user.login,
+      email: 'admin@maup.com.ua',
+      role: Role.ADMIN,
+      status: 'active',
+    });
+
+    const result = await service.requestPasswordReset(
+      { identifier: 'admin' },
+      '127.0.0.1',
+      'jest',
+      'req-6',
+    );
+
+    expect(usersService.setPasswordResetToken).toHaveBeenCalledWith(
+      user.id,
+      expect.any(String),
+      expect.any(Date),
+    );
+    expect(typeof result.message).toBe('string');
+    expect(typeof result.resetToken).toBe('string');
+    expect(result.resetUrl).toContain('/reset-password?token=');
+    expect(typeof result.expiresAt).toBe('string');
+    expect(auditLogService.logAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'auth.password_reset.request',
+        result: 'success',
+      }),
+    );
+
+    usersService.findPasswordResetCandidate.mockResolvedValue(null);
+
+    const missingResult = await service.requestPasswordReset(
+      { identifier: 'missing' },
+      '127.0.0.1',
+      'jest',
+      'req-7',
+    );
+
+    expect(typeof missingResult.message).toBe('string');
+    expect(missingResult.resetToken).toBeUndefined();
+  });
+
+  it('resets password with a valid reset token', async () => {
+    const user = createUser();
+    usersService.consumePasswordResetToken.mockResolvedValue({
+      id: user.id,
+      login: user.login,
+      email: 'admin@maup.com.ua',
+      role: Role.ADMIN,
+      status: 'active',
+    });
+
+    await expect(
+      service.confirmPasswordReset(
+        {
+          token: 'valid-reset-token',
+          newPassword: 'Password123!',
+        },
+        '127.0.0.1',
+        'jest',
+        'req-8',
+      ),
+    ).resolves.toEqual({
+      message: 'Пароль успішно змінено. Увійдіть з новим паролем.',
+    });
+
+    expect(usersService.consumePasswordResetToken).toHaveBeenCalledWith(
+      tokenHash('valid-reset-token'),
+      expect.any(String),
+    );
+    expect(auditLogService.logAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'auth.password_reset.confirm',
+        result: 'success',
+        userId: user.id,
+      }),
+    );
+  });
+
+  it('rejects invalid or expired reset tokens', async () => {
+    usersService.consumePasswordResetToken.mockResolvedValue(null);
+
+    await expect(
+      service.confirmPasswordReset(
+        {
+          token: 'expired-reset-token',
+          newPassword: 'Password123!',
+        },
+        '127.0.0.1',
+        'jest',
+        'req-9',
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(usersService.consumePasswordResetToken).toHaveBeenCalledWith(
+      tokenHash('expired-reset-token'),
+      expect.any(String),
+    );
+    expect(auditLogService.logAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'auth.password_reset.confirm',
+        result: 'failure',
+      }),
     );
   });
 });
