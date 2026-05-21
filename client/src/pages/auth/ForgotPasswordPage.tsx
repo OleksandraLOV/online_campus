@@ -396,7 +396,7 @@ function BackToLoginLink() {
         className="inline-flex items-center gap-2 text-sm text-blue-700 transition-colors hover:text-blue-900 hover:underline"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Повернутися до входу
+        Повернутися
       </Link>
     </div>
   );
