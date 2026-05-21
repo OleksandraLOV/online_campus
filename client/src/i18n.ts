@@ -86,6 +86,9 @@ const resources = {
       'dashboard.coursesCount': 'Курси',
       'dashboard.classroomsCount': 'Аудиторії',
 
+      'dashboard.freeDayHint':
+        'Можна використати цей час для самостійного навчання або відпочинку.',
+
       'schedule.title': 'Розклад',
       'schedule.day': 'День',
       'schedule.week': 'Тиждень',
@@ -316,6 +319,8 @@ const resources = {
       'dashboard.groupsCount': 'Groups',
       'dashboard.coursesCount': 'Courses',
       'dashboard.classroomsCount': 'Classrooms',
+
+      'dashboard.freeDayHint': 'You can use this time for self-study or rest.',
 
       'schedule.title': 'Schedule',
       'schedule.day': 'Day',
