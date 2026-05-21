@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { useForm } from "react-hook-form";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import axios from "axios";
 import {
   ArrowLeft,
@@ -14,10 +17,6 @@ import {
   Mail,
 } from "lucide-react";
 import api from "../../services/api";
-import {
-  passwordResetConfirmSchema,
-  passwordResetRequestSchema,
-} from "../../schemas/authSchema";
 import type {
   PasswordResetConfirmFormData,
   PasswordResetRequestFormData,
@@ -30,14 +29,63 @@ type PasswordResetRequestResponse = {
   resetUrl?: string;
 };
 
-function getApiErrorMessage(error: unknown, fallback: string): string {
+const API_ERROR_TRANSLATION_KEYS: Record<string, string> = {
+  "Посилання для відновлення пароля недійсне або протерміноване":
+    "passwordReset.errors.invalidToken",
+};
+
+function createPasswordResetRequestSchema(t: TFunction) {
+  return z.object({
+    identifier: z
+      .string()
+      .trim()
+      .min(2, t("passwordReset.validation.identifierRequired"))
+      .max(120, t("passwordReset.validation.identifierMax")),
+  });
+}
+
+function createPasswordResetConfirmSchema(t: TFunction) {
+  return z
+    .object({
+      token: z
+        .string()
+        .trim()
+        .min(32, t("passwordReset.validation.tokenInvalid"))
+        .max(200, t("passwordReset.validation.tokenInvalid")),
+      newPassword: z
+        .string()
+        .min(8, t("passwordReset.validation.passwordMin"))
+        .max(50, t("passwordReset.validation.passwordMax"))
+        .regex(
+          /((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/,
+          t("passwordReset.validation.passwordComplexity"),
+        ),
+      confirmPassword: z.string(),
+    })
+    .refine((values) => values.newPassword === values.confirmPassword, {
+      message: t("passwordReset.validation.passwordsMismatch"),
+      path: ["confirmPassword"],
+    });
+}
+
+function translateApiMessage(message: string, t: TFunction): string {
+  const translationKey = API_ERROR_TRANSLATION_KEYS[message];
+
+  return translationKey ? t(translationKey) : message;
+}
+
+function getApiErrorMessage(
+  error: unknown,
+  fallback: string,
+  t: TFunction,
+): string {
   if (!axios.isAxiosError(error)) {
     return fallback;
   }
 
   const message = error.response?.data?.message;
   if (typeof message === "string") {
-    return message;
+    return translateApiMessage(message, t);
   }
 
   if (Array.isArray(message)) {
@@ -45,7 +93,9 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
       (item): item is string => typeof item === "string",
     );
     if (validationMessages.length > 0) {
-      return validationMessages.join("\n");
+      return validationMessages
+        .map((item) => translateApiMessage(item, t))
+        .join("\n");
     }
   }
 
@@ -53,6 +103,7 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
 }
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const initialToken = searchParams.get("token") ?? "";
   const isResetMode = initialToken.length > 0;
@@ -73,16 +124,22 @@ export default function ForgotPasswordPage() {
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white">
                 <img
                   src="/maup_logo.svg"
-                  alt="МАУП"
+                  alt={t("login.logoAlt")}
                   className="h-11 w-11 object-contain"
                 />
               </div>
 
               <div>
                 <h1 className="text-xl font-bold">
-                  {isResetMode ? "Новий пароль" : "Відновлення пароля"}
+                  {t(
+                    isResetMode
+                      ? "passwordReset.pageTitleConfirm"
+                      : "passwordReset.pageTitleRequest",
+                  )}
                 </h1>
-                <p className="mt-1 text-sm text-blue-100">Кампус МАУП</p>
+                <p className="mt-1 text-sm text-blue-100">
+                  {t("app.title")}
+                </p>
               </div>
             </div>
           </div>
@@ -101,6 +158,11 @@ export default function ForgotPasswordPage() {
 }
 
 function PasswordResetRequestForm() {
+  const { t } = useTranslation();
+  const schema = useMemo(
+    () => createPasswordResetRequestSchema(t),
+    [t],
+  );
   const [message, setMessage] = useState("");
   const [devResetUrl, setDevResetUrl] = useState("");
   const [error, setError] = useState("");
@@ -111,7 +173,7 @@ function PasswordResetRequestForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<PasswordResetRequestFormData>({
-    resolver: zodResolver(passwordResetRequestSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       identifier: "",
     },
@@ -129,13 +191,13 @@ function PasswordResetRequestForm() {
         values,
       );
 
-      setMessage(data.message);
+      setMessage(t("passwordReset.requestSuccess"));
       if (data.resetUrl) {
         setDevResetUrl(data.resetUrl);
       }
     } catch (err) {
       setError(
-        getApiErrorMessage(err, "Не вдалося створити запит на відновлення"),
+        getApiErrorMessage(err, t("passwordReset.requestError"), t),
       );
     }
   };
@@ -149,7 +211,7 @@ function PasswordResetRequestForm() {
       await navigator.clipboard.writeText(devResetUrl);
       setCopied(true);
     } catch {
-      setError("Не вдалося скопіювати посилання. Скопіюйте його вручну.");
+      setError(t("passwordReset.copyError"));
     }
   };
 
@@ -160,10 +222,11 @@ function PasswordResetRequestForm() {
           <Mail className="h-6 w-6" aria-hidden="true" />
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900">Забули пароль?</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          {t("passwordReset.requestHeading")}
+        </h2>
         <p className="mt-2 text-sm leading-6 text-gray-500">
-          Введіть логін або email. Якщо акаунт існує, система створить
-          одноразове посилання для встановлення нового пароля.
+          {t("passwordReset.requestDescription")}
         </p>
       </div>
 
@@ -179,7 +242,7 @@ function PasswordResetRequestForm() {
       {devResetUrl && (
         <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm font-medium text-amber-900">
-            Dev-посилання для відновлення
+            {t("passwordReset.devLinkTitle")}
           </p>
           <p className="mt-1 break-all text-xs text-amber-800">{devResetUrl}</p>
           <button
@@ -188,7 +251,7 @@ function PasswordResetRequestForm() {
             className="mt-3 inline-flex items-center gap-2 rounded-lg border border-amber-300 px-3 py-2 text-sm font-medium text-amber-900 transition-colors hover:bg-amber-100"
           >
             <Copy className="h-4 w-4" aria-hidden="true" />
-            {copied ? "Скопійовано" : "Скопіювати"}
+            {copied ? t("passwordReset.copied") : t("passwordReset.copy")}
           </button>
         </div>
       )}
@@ -202,13 +265,13 @@ function PasswordResetRequestForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            Логін або email
+            {t("passwordReset.identifierLabel")}
           </label>
           <input
             type="text"
             {...register("identifier")}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-            placeholder="student1 або student@maup.com.ua"
+            placeholder={t("passwordReset.identifierPlaceholder")}
           />
           {errors.identifier && (
             <p className="mt-1 text-sm text-red-600">
@@ -222,7 +285,9 @@ function PasswordResetRequestForm() {
           disabled={isSubmitting}
           className="w-full rounded-xl bg-blue-700 py-3 font-medium text-white transition-colors hover:bg-blue-800 disabled:opacity-50"
         >
-          {isSubmitting ? "Створення запиту..." : "Відновити пароль"}
+          {isSubmitting
+            ? t("passwordReset.requestSubmitting")
+            : t("passwordReset.requestSubmit")}
         </button>
       </form>
 
@@ -232,6 +297,11 @@ function PasswordResetRequestForm() {
 }
 
 function PasswordResetConfirmForm({ initialToken }: { initialToken: string }) {
+  const { t } = useTranslation();
+  const schema = useMemo(
+    () => createPasswordResetConfirmSchema(t),
+    [t],
+  );
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -242,7 +312,7 @@ function PasswordResetConfirmForm({ initialToken }: { initialToken: string }) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<PasswordResetConfirmFormData>({
-    resolver: zodResolver(passwordResetConfirmSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       token: initialToken,
       newPassword: "",
@@ -255,17 +325,14 @@ function PasswordResetConfirmForm({ initialToken }: { initialToken: string }) {
     setMessage("");
 
     try {
-      const { data } = await api.post<{ message: string }>(
-        "/auth/password-reset/confirm",
-        {
-          token: values.token,
-          newPassword: values.newPassword,
-        },
-      );
+      await api.post<{ message: string }>("/auth/password-reset/confirm", {
+        token: values.token,
+        newPassword: values.newPassword,
+      });
 
-      setMessage(data.message);
+      setMessage(t("passwordReset.confirmSuccess"));
     } catch (err) {
-      setError(getApiErrorMessage(err, "Не вдалося змінити пароль"));
+      setError(getApiErrorMessage(err, t("passwordReset.confirmError"), t));
     }
   };
 
@@ -277,11 +344,10 @@ function PasswordResetConfirmForm({ initialToken }: { initialToken: string }) {
         </div>
 
         <h2 className="text-2xl font-bold text-gray-900">
-          Створіть новий пароль
+          {t("passwordReset.confirmHeading")}
         </h2>
         <p className="mt-2 text-sm leading-6 text-gray-500">
-          Посилання одноразове. Після зміни пароля всі активні сесії акаунта
-          будуть відкликані.
+          {t("passwordReset.confirmDescription")}
         </p>
       </div>
 
@@ -309,20 +375,24 @@ function PasswordResetConfirmForm({ initialToken }: { initialToken: string }) {
         )}
 
         <PasswordField
-          label="Новий пароль"
-          placeholder="Введіть новий пароль"
+          label={t("passwordReset.newPasswordLabel")}
+          placeholder={t("passwordReset.newPasswordPlaceholder")}
           registration={register("newPassword")}
           show={showPassword}
           onToggle={() => setShowPassword((current) => !current)}
+          showLabel={t("passwordReset.showPassword")}
+          hideLabel={t("passwordReset.hidePassword")}
           error={errors.newPassword?.message}
         />
 
         <PasswordField
-          label="Повторіть пароль"
-          placeholder="Повторіть новий пароль"
+          label={t("passwordReset.confirmPasswordLabel")}
+          placeholder={t("passwordReset.confirmPasswordPlaceholder")}
           registration={register("confirmPassword")}
           show={showConfirmPassword}
           onToggle={() => setShowConfirmPassword((current) => !current)}
+          showLabel={t("passwordReset.showPassword")}
+          hideLabel={t("passwordReset.hidePassword")}
           error={errors.confirmPassword?.message}
         />
 
@@ -331,7 +401,9 @@ function PasswordResetConfirmForm({ initialToken }: { initialToken: string }) {
           disabled={isSubmitting || Boolean(message)}
           className="w-full rounded-xl bg-blue-700 py-3 font-medium text-white transition-colors hover:bg-blue-800 disabled:opacity-50"
         >
-          {isSubmitting ? "Збереження..." : "Змінити пароль"}
+          {isSubmitting
+            ? t("passwordReset.confirmSubmitting")
+            : t("passwordReset.confirmSubmit")}
         </button>
       </form>
 
@@ -346,6 +418,8 @@ function PasswordField({
   registration,
   show,
   onToggle,
+  showLabel,
+  hideLabel,
   error,
 }: {
   label: string;
@@ -353,6 +427,8 @@ function PasswordField({
   registration: UseFormRegisterReturn;
   show: boolean;
   onToggle: () => void;
+  showLabel: string;
+  hideLabel: string;
   error?: string;
 }) {
   return (
@@ -372,7 +448,7 @@ function PasswordField({
         <button
           type="button"
           onClick={onToggle}
-          aria-label={show ? "Приховати пароль" : "Показати пароль"}
+          aria-label={show ? hideLabel : showLabel}
           className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-blue-700"
         >
           {show ? (
@@ -389,6 +465,8 @@ function PasswordField({
 }
 
 function BackToLoginLink() {
+  const { t } = useTranslation();
+
   return (
     <div className="mt-6 flex justify-center">
       <Link
@@ -396,7 +474,7 @@ function BackToLoginLink() {
         className="inline-flex items-center gap-2 text-sm text-blue-700 transition-colors hover:text-blue-900 hover:underline"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Повернутися
+        {t("passwordReset.backToLogin")}
       </Link>
     </div>
   );

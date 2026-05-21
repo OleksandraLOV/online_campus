@@ -4,7 +4,6 @@ import { useAuthStore } from '../../store/authStore';
 import { ROLE_LABEL_KEYS } from '../../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 
 type InfoRowProps = {
@@ -246,14 +245,6 @@ export default function ProfilePage() {
                   {errors.confirmPassword.message}
                 </p>
               )}
-            </div>
-
-            <div className="flex justify-end">
-              <Link
-                to="/forgot-password"
-                className="text-sm font-medium text-blue-700 transition hover:text-blue-800 hover:underline">
-                {t('auth.forgotPassword')}
-              </Link>
             </div>
 
             {passwordError && (

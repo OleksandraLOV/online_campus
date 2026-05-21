@@ -31,6 +31,55 @@ const resources = {
       'auth.subtitle': 'Введіть логін та пароль для доступу до кабінету.',
       'auth.forgotPassword': 'Забули пароль?',
 
+      'passwordReset.pageTitleRequest': 'Відновлення пароля',
+      'passwordReset.pageTitleConfirm': 'Новий пароль',
+      'passwordReset.requestHeading': 'Забули пароль?',
+      'passwordReset.requestDescription':
+        'Введіть логін або email. Якщо акаунт існує, система створить одноразове посилання для встановлення нового пароля.',
+      'passwordReset.requestSuccess':
+        'Якщо акаунт існує, інструкції для відновлення пароля будуть надіслані.',
+      'passwordReset.devLinkTitle': 'Dev-посилання для відновлення',
+      'passwordReset.copy': 'Скопіювати',
+      'passwordReset.copied': 'Скопійовано',
+      'passwordReset.copyError':
+        'Не вдалося скопіювати посилання. Скопіюйте його вручну.',
+      'passwordReset.identifierLabel': 'Логін або email',
+      'passwordReset.identifierPlaceholder':
+        'student1 або student@maup.com.ua',
+      'passwordReset.requestSubmit': 'Відновити пароль',
+      'passwordReset.requestSubmitting': 'Створення запиту...',
+      'passwordReset.requestError':
+        'Не вдалося створити запит на відновлення',
+      'passwordReset.confirmHeading': 'Створіть новий пароль',
+      'passwordReset.confirmDescription':
+        'Посилання одноразове. Після зміни пароля всі активні сесії акаунта будуть відкликані.',
+      'passwordReset.newPasswordLabel': 'Новий пароль',
+      'passwordReset.newPasswordPlaceholder': 'Введіть новий пароль',
+      'passwordReset.confirmPasswordLabel': 'Повторіть пароль',
+      'passwordReset.confirmPasswordPlaceholder': 'Повторіть новий пароль',
+      'passwordReset.confirmSubmit': 'Змінити пароль',
+      'passwordReset.confirmSubmitting': 'Збереження...',
+      'passwordReset.confirmSuccess':
+        'Пароль успішно змінено. Увійдіть з новим паролем.',
+      'passwordReset.confirmError': 'Не вдалося змінити пароль',
+      'passwordReset.backToLogin': 'Повернутися',
+      'passwordReset.showPassword': 'Показати пароль',
+      'passwordReset.hidePassword': 'Приховати пароль',
+      'passwordReset.validation.identifierRequired':
+        'Введіть логін або email',
+      'passwordReset.validation.identifierMax': 'Значення занадто довге',
+      'passwordReset.validation.tokenInvalid':
+        'Некоректне посилання для відновлення',
+      'passwordReset.validation.passwordMin':
+        'Пароль має бути не коротшим за 8 символів',
+      'passwordReset.validation.passwordMax':
+        'Пароль має бути не довшим за 50 символів',
+      'passwordReset.validation.passwordComplexity':
+        'Пароль має містити велику літеру, малу літеру та цифру або спецсимвол',
+      'passwordReset.validation.passwordsMismatch': 'Паролі не збігаються',
+      'passwordReset.errors.invalidToken':
+        'Посилання для відновлення пароля недійсне або протерміноване',
+
       'login.left.academyFull':
         'Міжрегіональна Академія\nуправління персоналом',
       'login.left.tagline1': 'Твій цифровий простір освіти в МАУП.',
@@ -266,6 +315,53 @@ const resources = {
       'auth.title': 'Sign in',
       'auth.subtitle': 'Enter your login and password to access your account.',
       'auth.forgotPassword': 'Forgot password?',
+
+      'passwordReset.pageTitleRequest': 'Password recovery',
+      'passwordReset.pageTitleConfirm': 'New password',
+      'passwordReset.requestHeading': 'Forgot your password?',
+      'passwordReset.requestDescription':
+        'Enter your login or email. If the account exists, the system will create a one-time link for setting a new password.',
+      'passwordReset.requestSuccess':
+        'If the account exists, password recovery instructions will be sent.',
+      'passwordReset.devLinkTitle': 'Development recovery link',
+      'passwordReset.copy': 'Copy',
+      'passwordReset.copied': 'Copied',
+      'passwordReset.copyError':
+        'Could not copy the link. Copy it manually.',
+      'passwordReset.identifierLabel': 'Login or email',
+      'passwordReset.identifierPlaceholder':
+        'student1 or student@maup.com.ua',
+      'passwordReset.requestSubmit': 'Recover password',
+      'passwordReset.requestSubmitting': 'Creating request...',
+      'passwordReset.requestError':
+        'Could not create a password recovery request',
+      'passwordReset.confirmHeading': 'Create a new password',
+      'passwordReset.confirmDescription':
+        'This link can be used only once. After the password is changed, all active account sessions will be revoked.',
+      'passwordReset.newPasswordLabel': 'New password',
+      'passwordReset.newPasswordPlaceholder': 'Enter a new password',
+      'passwordReset.confirmPasswordLabel': 'Repeat password',
+      'passwordReset.confirmPasswordPlaceholder': 'Repeat the new password',
+      'passwordReset.confirmSubmit': 'Change password',
+      'passwordReset.confirmSubmitting': 'Saving...',
+      'passwordReset.confirmSuccess':
+        'Password changed successfully. Sign in with your new password.',
+      'passwordReset.confirmError': 'Could not change password',
+      'passwordReset.backToLogin': 'Back to sign in',
+      'passwordReset.showPassword': 'Show password',
+      'passwordReset.hidePassword': 'Hide password',
+      'passwordReset.validation.identifierRequired': 'Enter login or email',
+      'passwordReset.validation.identifierMax': 'The value is too long',
+      'passwordReset.validation.tokenInvalid': 'Invalid recovery link',
+      'passwordReset.validation.passwordMin':
+        'Password must be at least 8 characters long',
+      'passwordReset.validation.passwordMax':
+        'Password must be no longer than 50 characters',
+      'passwordReset.validation.passwordComplexity':
+        'Password must include an uppercase letter, a lowercase letter, and a number or special character',
+      'passwordReset.validation.passwordsMismatch': 'Passwords do not match',
+      'passwordReset.errors.invalidToken':
+        'The password recovery link is invalid or expired',
 
       'login.left.academyFull':
         'Interregional Academy of\nPersonnel Management',
