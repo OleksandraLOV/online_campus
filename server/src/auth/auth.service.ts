@@ -7,10 +7,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { UsersService } from '../users/users.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
+import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 
 interface AuthUser {
   id: string;
@@ -28,6 +30,18 @@ interface ValidJwtPayload {
   role: string;
 }
 
+type PasswordResetResponse = {
+  message: string;
+  expiresAt?: string;
+  resetToken?: string;
+  resetUrl?: string;
+};
+
+const PASSWORD_RESET_MESSAGE =
+  'Якщо акаунт існує, інструкції для відновлення пароля будуть надіслані.';
+const PASSWORD_RESET_TOKEN_BYTES = 32;
+const DEFAULT_PASSWORD_RESET_TTL_MINUTES = 30;
+
 function isJwtPayload(obj: unknown): obj is ValidJwtPayload {
   return (
     typeof obj === 'object' &&
@@ -43,6 +57,11 @@ function isJwtPayload(obj: unknown): obj is ValidJwtPayload {
 
 function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
+}
+
+function readPositiveInteger(value: string | undefined, fallback: number) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 function getJwtVerifyFailureReason(err: unknown): string {
@@ -63,6 +82,9 @@ export class AuthService {
   private readonly refreshTokenExpiresIn: NonNullable<
     JwtSignOptions['expiresIn']
   >;
+  private readonly passwordResetTtlMs: number;
+  private readonly clientUrl: string;
+  private readonly exposePasswordResetToken: boolean;
 
   constructor(
     private readonly jwtService: JwtService,
@@ -78,6 +100,18 @@ export class AuthService {
       configService.get<NonNullable<JwtSignOptions['expiresIn']>>(
         'JWT_REFRESH_EXPIRES_IN',
       ) ?? '7d';
+    this.passwordResetTtlMs =
+      readPositiveInteger(
+        configService.get<string>('PASSWORD_RESET_TTL_MINUTES'),
+        DEFAULT_PASSWORD_RESET_TTL_MINUTES,
+      ) *
+      60 *
+      1000;
+    this.clientUrl =
+      configService.get<string>('CLIENT_URL') ?? 'http://localhost:5173';
+    this.exposePasswordResetToken =
+      configService.get<string>('NODE_ENV') !== 'production' &&
+      configService.get<string>('PASSWORD_RESET_EXPOSE_TOKEN') === 'true';
   }
 
   async login(
@@ -173,6 +207,117 @@ export class AuthService {
     const userDto = await this.usersService.findOne(userId);
     if (!userDto) throw new UnauthorizedException('Користувача не знайдено');
     return userDto;
+  }
+
+  async requestPasswordReset(
+    dto: RequestPasswordResetDto,
+    ipAddress = 'unknown',
+    userAgent = 'unknown',
+    requestId?: string,
+  ): Promise<PasswordResetResponse> {
+    const identifier = dto.identifier.trim();
+    const candidate =
+      await this.usersService.findPasswordResetCandidate(identifier);
+
+    if (!candidate || candidate.status !== 'active') {
+      this.auditLogService.logAction({
+        userId: candidate?.id ?? null,
+        userLogin: candidate?.login ?? identifier,
+        userRole: candidate?.role,
+        action: 'auth.password_reset.request',
+        ipAddress,
+        userAgent,
+        result: 'failure',
+        details: {
+          reason: candidate ? 'Account is not active' : 'Account not found',
+        },
+        requestId,
+      });
+
+      return { message: PASSWORD_RESET_MESSAGE };
+    }
+
+    const resetToken = randomBytes(PASSWORD_RESET_TOKEN_BYTES).toString(
+      'base64url',
+    );
+    const expiresAt = new Date(Date.now() + this.passwordResetTtlMs);
+
+    await this.usersService.setPasswordResetToken(
+      candidate.id,
+      hashToken(resetToken),
+      expiresAt,
+    );
+
+    this.auditLogService.logAction({
+      userId: candidate.id,
+      userLogin: candidate.login,
+      userRole: candidate.role,
+      action: 'auth.password_reset.request',
+      ipAddress,
+      userAgent,
+      result: 'success',
+      details: {
+        expiresAt: expiresAt.toISOString(),
+      },
+      requestId,
+    });
+
+    const response: PasswordResetResponse = {
+      message: PASSWORD_RESET_MESSAGE,
+    };
+
+    if (this.exposePasswordResetToken) {
+      response.resetToken = resetToken;
+      response.resetUrl = this.buildPasswordResetUrl(resetToken);
+      response.expiresAt = expiresAt.toISOString();
+    }
+
+    return response;
+  }
+
+  async confirmPasswordReset(
+    dto: ConfirmPasswordResetDto,
+    ipAddress = 'unknown',
+    userAgent = 'unknown',
+    requestId?: string,
+  ) {
+    const passwordHash = await bcrypt.hash(dto.newPassword, 12);
+    const user = await this.usersService.consumePasswordResetToken(
+      hashToken(dto.token),
+      passwordHash,
+    );
+
+    if (!user) {
+      this.auditLogService.logAction({
+        userId: null,
+        userLogin: 'unknown',
+        action: 'auth.password_reset.confirm',
+        ipAddress,
+        userAgent,
+        result: 'failure',
+        details: { reason: 'Invalid or expired reset token' },
+        requestId,
+      });
+
+      throw new BadRequestException(
+        'Посилання для відновлення пароля недійсне або протерміноване',
+      );
+    }
+
+    this.auditLogService.logAction({
+      userId: user.id,
+      userLogin: user.login,
+      userRole: user.role,
+      action: 'auth.password_reset.confirm',
+      ipAddress,
+      userAgent,
+      result: 'success',
+      requestId,
+    });
+
+    return {
+      message: 'Пароль успішно змінено. Увійдіть з новим паролем.',
+    };
   }
 
   async refresh(
@@ -431,5 +576,11 @@ export class AuthService {
     });
 
     return { message: 'Пароль успішно змінено' };
+  }
+
+  private buildPasswordResetUrl(token: string): string {
+    const url = new URL('/reset-password', this.clientUrl);
+    url.searchParams.set('token', token);
+    return url.toString();
   }
 }

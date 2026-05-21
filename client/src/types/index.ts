@@ -105,6 +105,7 @@ export interface PaginatedResponse<T> {
 
 export interface FileDto {
   id: string;
+  _id?: string;
   originalName: string;
   mimetype: string;
   size: number;

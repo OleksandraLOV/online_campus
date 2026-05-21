@@ -1,12 +1,10 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Role } from '../common/types/roles.enum';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import {
   Notification,
@@ -98,7 +96,7 @@ export class NotificationsService {
     return { success: true };
   }
 
-  async delete(id: string, userId: string, _role?: Role) {
+  async delete(id: string, userId: string) {
     const userObjId = this.toObjectId(userId);
     const notification = await this.notificationModel.findById(
       this.toObjectId(id),
@@ -108,10 +106,9 @@ export class NotificationsService {
       throw new NotFoundException('Сповіщення не знайдено');
     }
 
-    await this.notificationModel.findByIdAndUpdate(
-      this.toObjectId(id),
-      { $addToSet: { dismissedBy: userObjId } },
-    );
+    await this.notificationModel.findByIdAndUpdate(this.toObjectId(id), {
+      $addToSet: { dismissedBy: userObjId },
+    });
 
     return { success: true };
   }

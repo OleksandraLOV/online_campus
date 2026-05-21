@@ -18,6 +18,12 @@ export class User extends Document {
   @Prop({ required: true, select: false })
   passwordHash: string;
 
+  @Prop({ type: String, select: false })
+  passwordResetTokenHash?: string;
+
+  @Prop({ type: Date, select: false })
+  passwordResetTokenExpiresAt?: Date;
+
   @Prop({ type: String, enum: Object.values(Role), required: true })
   role: Role;
 
@@ -60,3 +66,5 @@ export class User extends Document {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 UserSchema.plugin(paginate);
+UserSchema.index({ passwordResetTokenHash: 1 }, { unique: true, sparse: true });
+UserSchema.index({ passwordResetTokenExpiresAt: 1 }, { sparse: true });
