@@ -32,7 +32,9 @@ export class CreateNotificationDto {
   @IsEnum(NotificationType)
   type: NotificationType;
 
-  @ApiPropertyOptional({ description: 'Target user id. Empty means broadcast.' })
+  @ApiPropertyOptional({
+    description: 'Target user id. Empty means broadcast.',
+  })
   @IsOptional()
   @IsMongoId()
   userId?: string;

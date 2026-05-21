@@ -63,7 +63,7 @@ export class NotificationsController {
 
   @Delete(':id')
   delete(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    return this.notificationsService.delete(id, req.user.sub, req.user.role);
+    return this.notificationsService.delete(id, req.user.sub);
   }
 
   @Delete()
