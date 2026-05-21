@@ -123,6 +123,8 @@ const resources = {
       'layout.supportText':
         'Зверніться до технічної підтримки через бот або пошту.',
 
+      'layout.openMenu': 'Відкрити меню',
+
       'assignments.title': 'Мої завдання',
       'assignments.empty': 'Завдань немає',
       'assignments.statusOverdue': 'Прострочено',
@@ -350,6 +352,8 @@ const resources = {
 
       'layout.supportTitle': 'Support',
       'layout.supportText': 'Contact technical support via bot or email.',
+
+      'layout.openMenu': 'Open menu',
 
       'assignments.title': 'My assignments',
       'assignments.empty': 'No assignments',

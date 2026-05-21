@@ -211,8 +211,9 @@ export default function Layout() {
             <button
               type="button"
               onClick={() => setSidebarOpen((prev) => !prev)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-xl text-slate-700 transition hover:bg-slate-50 sm:h-12 sm:w-12 lg:hidden">
-              ☰
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 lg:hidden"
+              aria-label={t('layout.openMenu')}>
+              <span className="text-xl leading-none">☰</span>
             </button>
 
             <div className="min-w-0 flex-1">
