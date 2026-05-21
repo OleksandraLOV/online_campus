@@ -4,6 +4,8 @@ import { useAuthStore } from '../store/authStore';
 import { ROLE_LABEL_KEYS } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 
 type InfoRowProps = {
   label: string;
@@ -35,6 +37,19 @@ export default function ProfilePage() {
 
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const [showPasswords, setShowPasswords] = useState({
+    oldPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
+
+  const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
 
   const {
     register,
@@ -124,78 +139,144 @@ export default function ProfilePage() {
             {t('profile.changePassword')}
           </h2>
 
-          {
-            <form
-              onSubmit={handleSubmit(onChangePassword)}
-              className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Поточний пароль
-                </label>
+          <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                {t('profile.currentPassword')}
+              </label>
+
+              <div className="relative">
                 <input
-                  type="password"
+                  type={showPasswords.oldPassword ? 'text' : 'password'}
                   {...register('oldPassword')}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2 pr-12 text-sm outline-none focus:border-blue-500"
                 />
-                {errors.oldPassword && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.oldPassword.message}
-                  </p>
-                )}
+
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility('oldPassword')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-blue-700"
+                  aria-label={
+                    showPasswords.oldPassword
+                      ? t('profile.hidePassword')
+                      : t('profile.showPassword')
+                  }>
+                  {showPasswords.oldPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Новий пароль
-                </label>
+              {errors.oldPassword && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.oldPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                {t('profile.newPassword')}
+              </label>
+
+              <div className="relative">
                 <input
-                  type="password"
+                  type={showPasswords.newPassword ? 'text' : 'password'}
                   {...register('newPassword')}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2 pr-12 text-sm outline-none focus:border-blue-500"
                 />
-                {errors.newPassword && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.newPassword.message}
-                  </p>
-                )}
+
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility('newPassword')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-blue-700"
+                  aria-label={
+                    showPasswords.newPassword
+                      ? t('profile.hidePassword')
+                      : t('profile.showPassword')
+                  }>
+                  {showPasswords.newPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Повторіть новий пароль
-                </label>
+              {errors.newPassword && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.newPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                {t('profile.confirmNewPassword')}
+              </label>
+
+              <div className="relative">
                 <input
-                  type="password"
+                  type={showPasswords.confirmPassword ? 'text' : 'password'}
                   {...register('confirmPassword')}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2 pr-12 text-sm outline-none focus:border-blue-500"
                 />
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
+
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility('confirmPassword')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-blue-700"
+                  aria-label={
+                    showPasswords.confirmPassword
+                      ? t('profile.hidePassword')
+                      : t('profile.showPassword')
+                  }>
+                  {showPasswords.confirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
 
-              {passwordError && (
-                <p className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-700">
-                  {passwordError}
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.confirmPassword.message}
                 </p>
               )}
+            </div>
 
-              {passwordSuccess && (
-                <p className="rounded-xl bg-green-50 px-4 py-2 text-sm text-green-700">
-                  {passwordSuccess}
-                </p>
-              )}
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-blue-700 transition hover:text-blue-800 hover:underline">
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-xl bg-blue-700 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60">
-                {isSubmitting ? 'Зміна пароля...' : 'Змінити пароль'}
-              </button>
-            </form>
-          }
+            {passwordError && (
+              <p className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-700">
+                {passwordError}
+              </p>
+            )}
+
+            {passwordSuccess && (
+              <p className="rounded-xl bg-green-50 px-4 py-2 text-sm text-green-700">
+                {passwordSuccess}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-xl bg-blue-700 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60">
+              {isSubmitting
+                ? t('profile.changePasswordLoading')
+                : t('profile.changePassword')}
+            </button>
+          </form>
         </section>
       )}
 
