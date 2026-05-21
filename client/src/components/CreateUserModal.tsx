@@ -20,12 +20,12 @@ interface UserProfile {
   middleName?: string;
   phone?: string;
   studentProfile?: {
-    group?: ReferenceItem | string;
+    group?: ReferenceItem | string | null;
     recordBookNumber?: string;
     year?: number;
   };
   teacherProfile?: {
-    department?: ReferenceItem | string;
+    department?: ReferenceItem | string | null;
     position?: string;
   };
 }
@@ -53,7 +53,9 @@ interface Props {
   userToEdit?: UserProfile | null;
 }
 
-function getReferenceId(value: ReferenceItem | string | undefined): string {
+function getReferenceId(
+  value: ReferenceItem | string | null | undefined,
+): string {
   if (!value) return '';
   if (typeof value === 'string') return value;
   return value.id || value._id || '';
