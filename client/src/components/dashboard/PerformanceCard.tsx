@@ -58,8 +58,6 @@ export default function PerformanceCard({ user }: Props) {
         <h3 className="text-lg font-semibold text-slate-900">
           {t('dashboard.profile')}
         </h3>
-
-        <span className="text-slate-300">↗</span>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

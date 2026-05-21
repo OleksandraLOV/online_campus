@@ -286,7 +286,7 @@ const resources = {
       'roles.president': 'President',
       'roles.admin': 'Admin',
 
-      'dashboard.welcome': 'Welcome, {{name}}!',
+      'dashboard.welcome': 'Welcome, {{name}}! 👋',
       'dashboard.overview': 'Today overview of your account',
 
       'dashboard.userFallback': 'user',
