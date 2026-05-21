@@ -1,50 +1,66 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 import api from '../../services/api';
 
 export default function NotificationsBell() {
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [count, setCount] = useState(0);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    let isMounted = true;
+    const fetchUnreadCount = async () => {
+      try {
+        const { data } = await api.get('/notifications/unread-count');
 
-    const loadUnreadCount = () => {
-      api
-        .get('/notifications/unread-count')
-        .then((res) => {
-          if (isMounted) {
-            setUnreadCount(res.data.count ?? 0);
-          }
-        })
-        .catch(() => {
-          if (isMounted) {
-            setUnreadCount(0);
-          }
-        });
+        setCount(data.count);
+      } catch (err) {
+        console.error(err);
+      }
     };
 
-    loadUnreadCount();
-
-    const intervalId = window.setInterval(loadUnreadCount, 120000);
-
-    return () => {
-      isMounted = false;
-      window.clearInterval(intervalId);
-    };
+    fetchUnreadCount();
   }, []);
 
   return (
-    <Link
-      to="/notifications"
+    <button
+      onClick={() => navigate('/notifications')}
       className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50">
-      <Bell className="h-5 w-5 text-gray-700" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.8}
+        stroke="currentColor"
+        className="w-5 h-5 text-gray-600">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M14.857 17.082a23.848 23.848 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0m5.714 0H18a2 2 0 0 0 2-2v-1.586a1 1 0 0 0-.293-.707l-1.414-1.414A2 2 0 0 1 18 9.586V9a6 6 0 1 0-12 0v.586a2 2 0 0 1-.293 1.707L4.293 12.707A1 1 0 0 0 4 13.414V15a2 2 0 0 0 2 2h2.857"
+        />
+      </svg>
 
-      {unreadCount > 0 && (
-        <span className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-          {unreadCount > 99 ? '99+' : unreadCount}
+      {count > 0 && (
+        <span
+          className="
+            absolute
+            -top-1
+            -right-1
+            min-w-[18px]
+            h-[18px]
+            px-1
+            rounded-full
+            bg-red-500
+            text-white
+            text-[11px]
+            flex
+            items-center
+            justify-center
+            font-medium
+          ">
+          {count}
         </span>
       )}
-    </Link>
+    </button>
   );
 }
